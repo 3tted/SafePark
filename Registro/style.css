@@ -124,3 +124,11 @@
   font-weight: 700;
   text-decoration: none;
 }
+@media (max-width: 768px) {
+    .form-box {
+        padding: 28px 20px;
+    }
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}

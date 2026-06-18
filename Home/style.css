@@ -174,3 +174,36 @@
   padding: 14px;
   font-size: 13px;
 }
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column;
+        padding: 32px 16px;
+        gap: 24px;
+        text-align: center;
+    }
+    .hero-content h1 {
+        font-size: 24px;
+    }
+    .hero-logo-placeholder {
+        display: none;
+    }
+    .search-bar {
+        flex-direction: column;
+    }
+    .hero-stats {
+        justify-content: center;
+    }
+    .map-section {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .map-sidebar {
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .map-placeholder {
+        height: 300px;
+    }
+}

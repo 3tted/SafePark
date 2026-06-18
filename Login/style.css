@@ -120,3 +120,8 @@
     font-size: 13px;
     color: var(--g4);
 }
+@media (max-width: 768px) {
+    .form-box {
+        padding: 28px 20px;
+    }
+}
