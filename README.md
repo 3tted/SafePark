@@ -75,28 +75,22 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 
 ```
 SafePark/
-├── index.html              # Redirige al login
-├── pages/
-│   ├── login.html
-│   ├── registro.html
-│   ├── home.html
-│   ├── mapa.html
-│   └── ...                 # Vistas adicionales (perfil, reportar, etc.)
-├── CSS/
-│   ├── reset.css
-│   ├── shared.css
-│   ├── navbar.css
-│   └── ...
-├── JavaScript/
-│   └── shared.js
-├── api/
-│   ├── usuarios/           # Endpoints de autenticación y perfil
-│   ├── datos/              # Áreas verdes y reportes
-│   ├── mapbox/             # Integración Mapbox GL JS
-│   ├── google-places/      # Búsqueda y autocompletado de lugares
-│   └── openweather/        # Clima en tiempo real
-└── assets/
-    └── logo.svg
+├── CSS/styles.css          ← estilos compartidos (reset, navbar, variables)
+├── Javascript/archivo.js   ← JS compartido
+├── Login/
+│   ├── index.html
+│   └── style.css
+├── Registro/
+│   ├── index.html
+│   └── style.css
+├── Home/
+│   ├── index.html
+│   └── style.css
+├── Mapa/
+│   ├── index.html
+│   ├── style.css
+│   └── archivo.js          ← geolocalización + Google Maps embed
+└── README.md
 ```
 
 ---
