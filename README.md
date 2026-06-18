@@ -25,7 +25,7 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 | Edgar |
 | Arleth |
 | Pedro |
-| Calamaco |
+| Ivan |
 
 
 ---
