@@ -20,12 +20,12 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 
 ## 👥 Equipo de desarrollo
 
-| Integrante | Rol |
+| Integrante |
 |---|---|
-| Edgar | — |
-| — | — |
-| — | — |
-| — | — |
+| Edgar |
+| Arleth |
+| Pedro |
+| Calamaco |
 
 > ✏️ *Actualiza esta tabla con los nombres y roles de tu equipo.*
 
