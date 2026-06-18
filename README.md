@@ -27,7 +27,6 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 | Pedro |
 | Calamaco |
 
-> ✏️ *Actualiza esta tabla con los nombres y roles de tu equipo.*
 
 ---
 
