@@ -1,0 +1,26 @@
+﻿.mapa-page { display:flex; height:calc(100vh - 60px); }
+.mapa-panel { width:300px; background:white; border-right:1px solid #e5e7eb; display:flex; flex-direction:column; flex-shrink:0; }
+.mapa-panel-head { padding:16px; border-bottom:1px solid #f3f4f6; }
+.mapa-panel-head h3 { font-size:14px; font-weight:900; color:var(--g1); margin-bottom:10px; }
+.panel-search { width:100%; padding:9px 12px; border:2px solid #e5e7eb; border-radius:10px; font-family:"Nunito",sans-serif; font-size:13px; outline:none; margin-bottom:10px; }
+.panel-search:focus { border-color:var(--g3); }
+.filter-chips { display:flex; gap:6px; flex-wrap:wrap; }
+.chip { padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; border:2px solid #e5e7eb; color:var(--muted); cursor:pointer; background:white; font-family:"Nunito",sans-serif; }
+.chip.active { background:var(--g2); border-color:var(--g2); color:white; }
+.mapa-lista { flex:1; overflow-y:auto; padding:12px; }
+.mapa-area-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid #f3f4f6; cursor:pointer; }
+.mapa-area-item:hover { background:var(--g5); }
+.area-score { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:900; flex-shrink:0; }
+.score-safe { background:#d1fae5; color:var(--safe); } .score-warn { background:#fef3c7; color:#b45309; } .score-risk { background:#fee2e2; color:var(--risk); }
+.area-info h4 { font-size:13px; font-weight:700; color:var(--g1); }
+.area-info p { font-size:11px; color:var(--muted); }
+.mapa-contenedor { flex:1; display:flex; flex-direction:column; background:#e9f5ee; position:relative; }
+#resultado { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px; color:var(--g2); font-size:14px; text-align:center; }
+#resultado iframe { position:absolute; top:0; left:0; width:100%; height:calc(100% - 44px); border:none; }
+#resultado button { padding:12px 24px; background:var(--g2); color:white; border:none; border-radius:10px; font-family:"Nunito",sans-serif; font-size:15px; font-weight:800; cursor:pointer; }
+#resultado button:hover { background:var(--g1); }
+.coords { background:white; padding:10px 16px; border-radius:10px; font-size:13px; color:var(--g1); }
+.leyenda { display:flex; gap:16px; background:white; padding:10px 16px; justify-content:center; border-top:1px solid #e5e7eb; flex-shrink:0; }
+.leyenda-item { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--g1); }
+.dot { width:12px; height:12px; border-radius:50%; }
+.dot.safe { background:var(--safe); } .dot.warn { background:var(--warn); } .dot.risk { background:var(--risk); }
