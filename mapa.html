@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa — SafePark</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a class="nav-logo" href="home.html">
+      <div class="logo-placeholder">LOGO</div>
+      <span class="nav-logo-text">Safe<span>Park</span></span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="home.html">Inicio</a>
+      <a class="nav-link active" href="mapa.html">Mapa</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn-nav" href="login.html">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <div class="mapa-page">
+
+    <!-- Panel lateral -->
+    <div class="mapa-panel">
+      <div class="mapa-panel-head">
+        <h3>Áreas verdes</h3>
+        <input class="panel-search" type="text" placeholder="Buscar área o colonia...">
+        <div class="filter-chips">
+          <button class="chip active">Todos</button>
+          <button class="chip">Parques</button>
+          <button class="chip">Deportivo</button>
+          <button class="chip">Plaza</button>
+        </div>
+      </div>
+      <div class="mapa-lista">
+        <div class="mapa-area-item">
+          <div class="area-score score-safe">92</div>
+          <div class="area-info"><h4>Parque Central</h4><p>Centro · Parque</p></div>
+        </div>
+        <div class="mapa-area-item">
+          <div class="area-score score-safe">88</div>
+          <div class="area-info"><h4>Área Verde Oriente</h4><p>Oriente · Parque</p></div>
+        </div>
+        <div class="mapa-area-item">
+          <div class="area-score score-warn">61</div>
+          <div class="area-info"><h4>Plaza Norte</h4><p>Nororiente · Plaza</p></div>
+        </div>
+        <div class="mapa-area-item">
+          <div class="area-score score-warn">55</div>
+          <div class="area-info"><h4>Área Deportiva Norte</h4><p>Norte · Deportivo</p></div>
+        </div>
+        <div class="mapa-area-item">
+          <div class="area-score score-risk">32</div>
+          <div class="area-info"><h4>Parque Sur</h4><p>Zona Sur · Parque</p></div>
+        </div>
+        <div class="mapa-area-item">
+          <div class="area-score score-safe">79</div>
+          <div class="area-info"><h4>Plaza Independencia</h4><p>Centro · Plaza</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor del mapa -->
+    <div class="mapa-contenedor">
+      🗺️
+      <span>Aquí se integrará el mapa de Mapbox GL JS</span>
+      <p>Los marcadores mostrarán el semáforo de seguridad de cada área</p>
+      <div class="leyenda">
+        <div class="leyenda-item"><div class="dot safe"></div> Seguro</div>
+        <div class="leyenda-item"><div class="dot warn"></div> Precaución</div>
+        <div class="leyenda-item"><div class="dot risk"></div> Riesgo</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
