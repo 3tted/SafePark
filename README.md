@@ -21,7 +21,7 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 ## 👥 Equipo de desarrollo
 
 | Integrante |
-|---|---|
+|---|
 | Edgar |
 | Arleth |
 | Pedro |
