@@ -1,0 +1,237 @@
+/* ══ LAYOUT ══ */
+.reportes-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    min-height: calc(100vh - 120px);
+}
+
+/* ══ FORMULARIO ══ */
+.form-section {
+    padding: 40px;
+}
+
+.form-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 6px;
+}
+
+.form-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--g1);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 2px solid #c8dec8;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    color: #1a1a1a;
+    outline: none;
+    transition: border 0.15s;
+    resize: vertical;
+}
+
+.form-input:focus {
+    border-color: var(--g3);
+}
+
+/* ══ TIPO DE REPORTE ══ */
+.tipo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.tipo-card {
+    border: 2px solid #c8dec8;
+    border-radius: 10px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.tipo-card span {
+    display: block;
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.tipo-card p {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--g1);
+}
+
+.tipo-card.sel {
+    border-color: var(--g3);
+    background: #d8f3dc;
+}
+
+.tipo-card:hover:not(.sel) {
+    border-color: var(--g4);
+    background: #f8faf8;
+}
+
+/* ══ UPLOAD ══ */
+.upload-area {
+    border: 2px dashed #c8dec8;
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1.6;
+}
+
+.upload-area span {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.upload-area:hover {
+    border-color: var(--g3);
+    background: #f8faf8;
+}
+
+/* ══ BOTÓN ENVIAR ══ */
+.btn-submit {
+    background: var(--g2);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    width: 100%;
+    transition: background 0.15s;
+}
+
+.btn-submit:hover {
+    background: var(--g1);
+}
+
+/* ══ PANEL LATERAL ══ */
+.reportes-side {
+    background: #f8faf8;
+    border-left: 1px solid #c8dec8;
+    padding: 32px 24px;
+}
+
+.side-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 18px;
+}
+
+.reporte-big {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #c8dec8;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.reporte-big-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.reporte-big-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.reporte-big-tipo {
+    font-weight: 800;
+    font-size: 13px;
+    color: #1a1a1a;
+}
+
+.reporte-big-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.reporte-big-desc {
+    font-size: 13px;
+    color: #1a1a1a;
+    line-height: 1.5;
+}
+
+/* ══ TAGS ══ */
+.tag {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.tag-aprov { background: #d8f3dc; color: var(--g1); }
+.tag-pend  { background: #fef3c7; color: #92400e; }
+.tag-rech  { background: #fee2e2; color: #991b1b; }
+
+/* ══ FOOTER ══ */
+.footer-bar {
+    background: var(--g1);
+    color: var(--g4);
+    text-align: center;
+    padding: 14px;
+    font-size: 13px;
+}
+
+/* ══ RESPONSIVO ══ */
+@media (max-width: 768px) {
+    .reportes-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .form-section {
+        padding: 24px 16px;
+    }
+
+    .tipo-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+    }
+
+    .reportes-side {
+        border-left: none;
+        border-top: 1px solid #c8dec8;
+        padding: 24px 16px;
+    }
+}
