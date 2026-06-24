@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunidad - SafePark</title>
+    <link rel="stylesheet" href="../CSS/styles.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a class="nav-logo" href="../Home/index.html">
+            <img src="../Assets/logo.png" height="50" alt="SafePark logo">
+            <span class="nav-logo-text">Safe<span>Park</span></span>
+        </a>
+        <div class="nav-links">
+            <a class="nav-link" href="../Home/index.html">Inicio</a>
+            <a class="nav-link" href="../Mapa/index.html">Mapa</a>
+            <a class="nav-link" href="../Explorar/index.html">Explorar</a>
+            <a class="nav-link" href="../Reportar/index.html">Reportar</a>
+            <a class="nav-link active" href="index.html">Comunidad</a>
+        </div>
+        <div class="nav-right">
+            <a class="btn-nav" href="../Login/index.html">Cerrar sesión</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="comunidad-hero">
+        <div class="comunidad-hero-text">
+            <h2>👥 Comunidad SafePark</h2>
+            <p>Juntos hacemos Ciudad Juárez más verde y segura</p>
+        </div>
+        <div class="comunidad-stats">
+            <div class="cstat"><div class="cstat-n">4,891</div><div class="cstat-l">Miembros</div></div>
+            <div class="cstat"><div class="cstat-n">1,342</div><div class="cstat-l">Reportes</div></div>
+            <div class="cstat"><div class="cstat-n">87</div><div class="cstat-l">Eventos</div></div>
+        </div>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="comunidad-layout">
+
+        <!-- Feed principal -->
+        <div class="comunidad-main">
+
+            <div class="feed-tabs">
+                <div class="feed-tab active" onclick="cambiarTab(this,'actividad')">📰 Actividad reciente</div>
+                <div class="feed-tab" onclick="cambiarTab(this,'eventos')">📅 Próximos eventos</div>
+                <div class="feed-tab" onclick="cambiarTab(this,'logros')">🏆 Logros</div>
+            </div>
+
+            <!-- Tab: Actividad -->
+            <div class="feed-panel" id="tab-actividad">
+                <div class="feed-panel-header">
+                    <span>Últimas acciones de la comunidad</span>
+                    <button class="btn-crear-evento" onclick="alert('Próximamente: crear evento')">+ Crear evento</button>
+                </div>
+
+                <div class="feed-item">
+                    <div class="feed-avatar">🧑</div>
+                    <div class="feed-content">
+                        <div class="feed-user">edgar_jz</div>
+                        <div class="feed-action">reportó un incidente en <span class="feed-area">Plaza Independencia</span> — "Poca iluminación en acceso norte"</div>
+                        <div class="feed-time">Hace 15 min</div>
+                        <div class="feed-reactions">
+                            <button class="reaction-btn" onclick="reaccionar(this)">👍 12</button>
+                            <button class="reaction-btn">💬 3</button>
+                            <button class="reaction-btn">🔔 Seguir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-item">
+                    <div class="feed-avatar" style="background:var(--g4);">👩</div>
+                    <div class="feed-content">
+                        <div class="feed-user">maria_cj</div>
+                        <div class="feed-action">organizó un evento en <span class="feed-area">Parque Central</span> — "Limpieza comunitaria sábado 7am"</div>
+                        <div class="feed-time">Hace 1 hora</div>
+                        <div class="feed-reactions">
+                            <button class="reaction-btn" onclick="reaccionar(this)">❤️ 38</button>
+                            <button class="reaction-btn">💬 11</button>
+                            <button class="reaction-btn reaction-active">✅ Asistiré</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-item">
+                    <div class="feed-avatar" style="background:#fef3c7;">👦</div>
+                    <div class="feed-content">
+                        <div class="feed-user">roberto_dev</div>
+                        <div class="feed-action">marcó como favorito <span class="feed-area">Área Deportiva Norte</span> y dejó una reseña ★★★★★</div>
+                        <div class="feed-time">Hace 2 horas</div>
+                        <div class="feed-reactions">
+                            <button class="reaction-btn" onclick="reaccionar(this)">👍 7</button>
+                            <button class="reaction-btn">💬 1</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-item">
+                    <div class="feed-avatar" style="background:#d8f3dc;">👩‍🦱</div>
+                    <div class="feed-content">
+                        <div class="feed-user">arleth_utcj</div>
+                        <div class="feed-action">subió 3 fotos de <span class="feed-area">Jardín Nororiente</span> después de su visita matutina</div>
+                        <div class="feed-time">Hace 3 horas</div>
+                        <div class="feed-reactions">
+                            <button class="reaction-btn" onclick="reaccionar(this)">📸 24</button>
+                            <button class="reaction-btn">💬 5</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-item">
+                    <div class="feed-avatar" style="background:#e9f5ee;">🧓</div>
+                    <div class="feed-content">
+                        <div class="feed-user">ivan_tech</div>
+                        <div class="feed-action">desbloqueó el logro <strong>🏅 Guardián del Parque</strong> — 10 reportes aprobados consecutivos</div>
+                        <div class="feed-time">Hace 5 horas</div>
+                        <div class="feed-reactions">
+                            <button class="reaction-btn" onclick="reaccionar(this)">🎉 52</button>
+                            <button class="reaction-btn">💬 8</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Próximos eventos -->
+            <div class="feed-panel" id="tab-eventos" style="display:none;">
+                <div class="feed-panel-header">
+                    <span>Eventos programados en la ciudad</span>
+                    <button class="btn-crear-evento" onclick="alert('Próximamente: crear evento')">+ Crear evento</button>
+                </div>
+
+                <div class="evento-card-big">
+                    <div class="evento-fecha-big"><div class="evento-num">14</div><div class="evento-mes">JUN</div></div>
+                    <div class="evento-info-big">
+                        <div class="evento-nombre-big">Caminata matutina 🚶</div>
+                        <div class="evento-meta-big">📍 Parque Central · ⏰ 07:00 AM</div>
+                        <div class="evento-asistentes">🙋 8 personas confirmadas</div>
+                    </div>
+                    <button class="btn-asistir" onclick="this.textContent='✅ Confirmado'; this.classList.add('confirmado')">Asistir</button>
+                </div>
+
+                <div class="evento-card-big">
+                    <div class="evento-fecha-big"><div class="evento-num">17</div><div class="evento-mes">JUN</div></div>
+                    <div class="evento-info-big">
+                        <div class="evento-nombre-big">Limpieza comunitaria 🧹</div>
+                        <div class="evento-meta-big">📍 Bosque Sur · ⏰ 08:00 AM</div>
+                        <div class="evento-asistentes">🙋 23 personas confirmadas</div>
+                    </div>
+                    <button class="btn-asistir" onclick="this.textContent='✅ Confirmado'; this.classList.add('confirmado')">Asistir</button>
+                </div>
+
+                <div class="evento-card-big">
+                    <div class="evento-fecha-big"><div class="evento-num">21</div><div class="evento-mes">JUN</div></div>
+                    <div class="evento-info-big">
+                        <div class="evento-nombre-big">Torneo de fútbol ⚽</div>
+                        <div class="evento-meta-big">📍 Cancha Municipal · ⏰ 10:00 AM</div>
+                        <div class="evento-asistentes">🙋 40 personas confirmadas</div>
+                    </div>
+                    <button class="btn-asistir" onclick="this.textContent='✅ Confirmado'; this.classList.add('confirmado')">Asistir</button>
+                </div>
+            </div>
+
+            <!-- Tab: Logros -->
+            <div class="feed-panel" id="tab-logros" style="display:none;">
+                <div class="feed-panel-header">
+                    <span>Logros desbloqueables por la comunidad</span>
+                </div>
+
+                <div class="logro-row">
+                    <div class="logro-icon-big">🛡️</div>
+                    <div class="logro-info">
+                        <div class="logro-nombre">Guardián del Parque</div>
+                        <div class="logro-desc">Envía 10 reportes aprobados consecutivos</div>
+                    </div>
+                    <div class="logro-pts">+50 pts</div>
+                </div>
+                <div class="logro-row">
+                    <div class="logro-icon-big">📸</div>
+                    <div class="logro-info">
+                        <div class="logro-nombre">Fotógrafo Ciudadano</div>
+                        <div class="logro-desc">Sube 20 fotos a la plataforma</div>
+                    </div>
+                    <div class="logro-pts">+30 pts</div>
+                </div>
+                <div class="logro-row">
+                    <div class="logro-icon-big">🌱</div>
+                    <div class="logro-info">
+                        <div class="logro-nombre">Primer reporte</div>
+                        <div class="logro-desc">Envía tu primer reporte ciudadano</div>
+                    </div>
+                    <div class="logro-pts">+10 pts</div>
+                </div>
+                <div class="logro-row">
+                    <div class="logro-icon-big">⭐</div>
+                    <div class="logro-info">
+                        <div class="logro-nombre">Explorador</div>
+                        <div class="logro-desc">Visita 5 áreas verdes distintas</div>
+                    </div>
+                    <div class="logro-pts">+20 pts</div>
+                </div>
+                <div class="logro-row">
+                    <div class="logro-icon-big">🤝</div>
+                    <div class="logro-info">
+                        <div class="logro-nombre">Organizador</div>
+                        <div class="logro-desc">Crea tu primer evento comunitario</div>
+                    </div>
+                    <div class="logro-pts">+40 pts</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="comunidad-side">
+
+            <div class="side-section-title">📅 Próximos eventos</div>
+            <div class="evento-card">
+                <div class="evento-fecha"><div class="evento-num">14</div><div class="evento-mes">JUN</div></div>
+                <div class="evento-info">
+                    <div class="evento-nombre">Caminata matutina</div>
+                    <div class="evento-meta">Parque Central · 07:00 AM · 8 🙋</div>
+                </div>
+            </div>
+            <div class="evento-card">
+                <div class="evento-fecha"><div class="evento-num">17</div><div class="evento-mes">JUN</div></div>
+                <div class="evento-info">
+                    <div class="evento-nombre">Limpieza comunitaria</div>
+                    <div class="evento-meta">Bosque Sur · 08:00 AM · 23 🙋</div>
+                </div>
+            </div>
+            <div class="evento-card">
+                <div class="evento-fecha"><div class="evento-num">21</div><div class="evento-mes">JUN</div></div>
+                <div class="evento-info">
+                    <div class="evento-nombre">Torneo de fútbol</div>
+                    <div class="evento-meta">Cancha Municipal · 10:00 AM · 40 🙋</div>
+                </div>
+            </div>
+
+            <div class="side-section-title" style="margin-top:24px;">🏆 Top contribuidores</div>
+            <div class="ranking-item">
+                <div class="ranking-num">🥇</div>
+                <div class="ranking-avatar" style="background:#fef3c7;">👩</div>
+                <div class="ranking-name">maria_cj</div>
+                <div class="ranking-count">48 reportes</div>
+            </div>
+            <div class="ranking-item">
+                <div class="ranking-num">🥈</div>
+                <div class="ranking-avatar" style="background:var(--g4);">🧑</div>
+                <div class="ranking-name">ivan_tech</div>
+                <div class="ranking-count">34 reportes</div>
+            </div>
+            <div class="ranking-item">
+                <div class="ranking-num">🥉</div>
+                <div class="ranking-avatar" style="background:var(--g3);">👩‍🦱</div>
+                <div class="ranking-name">arleth_utcj</div>
+                <div class="ranking-count">29 reportes</div>
+            </div>
+            <div class="ranking-item">
+                <div class="ranking-num" style="font-size:13px;color:var(--muted);">4</div>
+                <div class="ranking-avatar" style="background:#e9f5ee;">🧑</div>
+                <div class="ranking-name">edgar_jz</div>
+                <div class="ranking-count">12 reportes</div>
+            </div>
+
+            <div class="side-section-title" style="margin-top:24px;">🏅 Logros recientes</div>
+            <div class="logro-item">
+                <div class="logro-icon">🛡️</div>
+                <div class="logro-info">
+                    <div class="logro-nombre">Guardián del Parque</div>
+                    <div class="logro-desc">10 reportes aprobados</div>
+                </div>
+                <div class="logro-pts">+50 pts</div>
+            </div>
+            <div class="logro-item">
+                <div class="logro-icon">📸</div>
+                <div class="logro-info">
+                    <div class="logro-nombre">Fotógrafo Ciudadano</div>
+                    <div class="logro-desc">Subir 20 fotos</div>
+                </div>
+                <div class="logro-pts">+30 pts</div>
+            </div>
+            <div class="logro-item">
+                <div class="logro-icon">🌱</div>
+                <div class="logro-info">
+                    <div class="logro-nombre">Primer reporte</div>
+                    <div class="logro-desc">Enviar tu primer reporte</div>
+                </div>
+                <div class="logro-pts">+10 pts</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-bar">SafePark · Comunidad · Ciudad Juárez</div>
+
+    <script src="comunidad.js"></script>
+</body>
+</html>
