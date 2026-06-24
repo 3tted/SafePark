@@ -1,22 +1,27 @@
 ﻿.hero {
   background: linear-gradient(135deg, var(--g1) 0%, var(--g2) 100%);
-  padding: 56px 32px;
+  padding: 24px 40px; 
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 48px;
+  flex-direction: column; /* Cambiado a columna para alinear todo el bloque al centro de la sección */
+  align-items: center;    /* Centra los elementos horizontalmente */
+  justify-content: center; /* Centra los elementos verticalmente */
+  gap: 20px;
+  text-align: center;     /* Centra los textos interiores */
 }
 
 .hero-content {
-  max-width: 520px;
+  max-width: 540px; /* Un poco más amplio para albergar los textos centrados cómodamente */
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Asegura que la barra de búsqueda y stats se alineen al centro */
 }
 
 .hero-content h1 {
-  font-size: 36px;
+  font-size: 26px; 
   font-weight: 900;
   line-height: 1.2;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .hero-content h1 span {
@@ -24,24 +29,25 @@
 }
 
 .hero-content p {
-  font-size: 15px;
+  font-size: 14px; 
   color: var(--g4);
-  margin-bottom: 24px;
-  line-height: 1.6;
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
 
 .hero-logo-placeholder {
-  width: 160px;
-  height: 160px;
+  width: 120px; 
+  height: 120px;
   border: 3px dashed var(--g4);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--g4);
   font-weight: 900;
   flex-shrink: 0;
+  margin-bottom: 8px; /* Espacio si decides usarlo arriba o abajo del contenido */
 }
 
 .search-bar {
@@ -51,6 +57,8 @@
     border-radius: 50px;
     padding: 6px 6px 6px 16px;
     gap: 8px;
+    width: 100%;       /* Permite que use el máximo configurado por el max-width */
+    max-width: 420px; 
 }
 
 .search-bar input {
@@ -75,12 +83,14 @@
 
 .hero-stats {
   display: flex;
-  gap: 24px;
-  margin-top: 24px;
+  justify-content: center; /* Centra las estadísticas horizontalmente */
+  gap: 32px; 
+  margin-top: 16px;
+  width: 100%;
 }
 
 .stat-n {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   color: white;
 }
@@ -91,33 +101,35 @@
   font-weight: 600;
 }
 
+/* --- SECCIÓN DEL MAPA (MÁS GRANDE Y ESTILIZADA) --- */
 .map-section {
   display: grid;
-  grid-template-columns: 300px 1fr;
-  height: 480px;
+  grid-template-columns: 340px 1fr; 
+  height: 580px; 
   background: white;
+  margin: 20px 0; 
 }
 
 .map-sidebar {
   border-right: 1px solid #e5e7eb;
   overflow-y: auto;
-  padding: 16px;
+  padding: 24px; 
 }
 
 .map-sidebar h3 {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 900;
   color: var(--g1);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .area-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 8px;
+  gap: 12px;
+  padding: 14px 16px; 
+  border-radius: 12px; 
+  margin-bottom: 10px; 
   border: 1px solid #f3f4f6;
   cursor: pointer;
 }
@@ -127,9 +139,10 @@
 }
 
 .area-info h4 {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--g1);
+  margin-bottom: 2px;
 }
 
 .area-info p {
@@ -139,7 +152,7 @@
 
 .badge {
   margin-left: auto;
-  padding: 3px 10px;
+  padding: 4px 12px; 
   border-radius: 20px;
   font-size: 11px;
   font-weight: 800;
@@ -178,24 +191,34 @@
   padding: 14px;
   font-size: 13px;
 }
+
+/* --- RESPONSIVO --- */
 @media (max-width: 768px) {
     .hero {
-        flex-direction: column;
         padding: 32px 16px;
-        gap: 24px;
-        text-align: center;
+        gap: 20px;
     }
     .hero-content h1 {
-        font-size: 24px;
+        font-size: 22px;
     }
     .hero-logo-placeholder {
         display: none;
     }
     .search-bar {
         flex-direction: column;
+        width: 100%;
+    }
+    .search-bar input {
+        width: 100%;
+        text-align: center;
+        padding: 8px 0;
+    }
+    .search-bar a {
+        width: 100%;
+        text-align: center;
     }
     .hero-stats {
-        justify-content: center;
+        gap: 20px;
     }
     .map-section {
         grid-template-columns: 1fr;
@@ -204,10 +227,10 @@
     .map-sidebar {
         border-right: none;
         border-bottom: 1px solid #e5e7eb;
-        max-height: 300px;
-        overflow-y: auto;
+        max-height: 280px;
+        padding: 16px;
     }
     .map-placeholder {
-        height: 300px;
+        height: 380px; 
     }
 }
