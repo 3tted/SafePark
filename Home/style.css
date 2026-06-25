@@ -57,8 +57,14 @@
     border-radius: 50px;
     padding: 6px 6px 6px 16px;
     gap: 8px;
-    width: 100%;       /* Permite que use el máximo configurado por el max-width */
-    max-width: 420px; 
+    width: 100%;
+    max-width: 420px;
+    border: 2px solid transparent;
+    transition: border 0.15s;
+}
+
+.search-bar:focus-within {
+    border-color: var(--g3);
 }
 
 .search-bar input {
@@ -69,16 +75,25 @@
     font-size: 14px;
     outline: none;
     color: #1a1a1a;
+    cursor: text;
+    pointer-events: all;
 }
 
-.search-bar a {
+.search-bar button {
     padding: 10px 20px;
     background: var(--g2);
     color: white;
     border-radius: 50px;
-    text-decoration: none;
+    border: none;
     font-weight: 800;
     font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.search-bar button:hover {
+    background: var(--g1);
 }
 
 .hero-stats {
