@@ -2,19 +2,19 @@
   background: linear-gradient(135deg, var(--g1) 0%, var(--g2) 100%);
   padding: 24px 40px; 
   display: flex;
-  flex-direction: column; /* Cambiado a columna para alinear todo el bloque al centro de la sección */
-  align-items: center;    /* Centra los elementos horizontalmente */
-  justify-content: center; /* Centra los elementos verticalmente */
+  flex-direction: column; 
+  align-items: center;    
+  justify-content: center; 
   gap: 20px;
-  text-align: center;     /* Centra los textos interiores */
+  text-align: center;   
 }
 
 .hero-content {
-  max-width: 540px; /* Un poco más amplio para albergar los textos centrados cómodamente */
+  max-width: 540px; 
   color: white;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Asegura que la barra de búsqueda y stats se alineen al centro */
+  align-items: center; 
 }
 
 .hero-content h1 {
@@ -47,7 +47,7 @@
   color: var(--g4);
   font-weight: 900;
   flex-shrink: 0;
-  margin-bottom: 8px; /* Espacio si decides usarlo arriba o abajo del contenido */
+  margin-bottom: 8px; 
 }
 
 .search-bar {
@@ -98,7 +98,7 @@
 
 .hero-stats {
   display: flex;
-  justify-content: center; /* Centra las estadísticas horizontalmente */
+  justify-content: center; 
   gap: 32px; 
   margin-top: 16px;
   width: 100%;
@@ -116,7 +116,6 @@
   font-weight: 600;
 }
 
-/* --- SECCIÓN DEL MAPA (MÁS GRANDE Y ESTILIZADA) --- */
 .map-section {
   display: grid;
   grid-template-columns: 340px 1fr; 
@@ -207,7 +206,7 @@
   font-size: 13px;
 }
 
-/* --- RESPONSIVO --- */
+/* responsive */
 @media (max-width: 768px) {
     .hero {
         padding: 32px 16px;

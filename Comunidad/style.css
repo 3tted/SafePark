@@ -1,4 +1,3 @@
-/* ══ HERO ══ */
 .comunidad-hero {
     background: linear-gradient(135deg, var(--g2), var(--g1));
     padding: 32px 40px;
@@ -45,7 +44,7 @@
     margin-top: 2px;
 }
 
-/* ══ LAYOUT ══ */
+/* layout */
 .comunidad-layout {
     display: grid;
     grid-template-columns: 1fr 320px;
@@ -62,7 +61,7 @@
     padding: 24px 20px;
 }
 
-/* ══ TABS ══ */
+/* Tap */
 .feed-tabs {
     display: flex;
     border-bottom: 2px solid #c8dec8;
@@ -90,7 +89,7 @@
     color: var(--g1);
 }
 
-/* ══ FEED ══ */
+/* Principal */
 .feed-panel-header {
     display: flex;
     justify-content: space-between;
@@ -205,7 +204,7 @@
     font-weight: 700;
 }
 
-/* ══ EVENTOS (tab principal) ══ */
+/* EVENTOS */
 .evento-card-big {
     background: white;
     border-radius: 12px;
@@ -290,7 +289,6 @@
     border-color: var(--g3);
 }
 
-/* ══ LOGROS (tab principal) ══ */
 .logro-row {
     display: flex;
     align-items: center;
@@ -401,7 +399,6 @@
     font-weight: 700;
 }
 
-/* ══ LOGROS SIDEBAR ══ */
 .logro-item {
     display: flex;
     align-items: center;
@@ -438,7 +435,6 @@
     flex-shrink: 0;
 }
 
-/* ══ FOOTER ══ */
 .footer-bar {
     background: var(--g1);
     color: var(--g4);
@@ -447,7 +443,6 @@
     font-size: 13px;
 }
 
-/* ══ RESPONSIVO ══ */
 @media (max-width: 900px) {
     .comunidad-layout {
         grid-template-columns: 1fr;

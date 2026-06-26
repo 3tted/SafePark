@@ -1,11 +1,9 @@
-/* ══ LAYOUT ══ */
 .reportes-layout {
     display: grid;
     grid-template-columns: 1fr 400px;
     min-height: calc(100vh - 120px);
 }
 
-/* ══ FORMULARIO ══ */
 .form-section {
     padding: 40px;
 }
@@ -90,7 +88,7 @@
     background: #f8faf8;
 }
 
-/* ══ UPLOAD ══ */
+
 .upload-area {
     border: 2px dashed #c8dec8;
     border-radius: 10px;
@@ -114,7 +112,6 @@
     background: #f8faf8;
 }
 
-/* ══ BOTÓN ENVIAR ══ */
 .btn-submit {
     background: var(--g2);
     color: white;
@@ -133,7 +130,6 @@
     background: var(--g1);
 }
 
-/* ══ PANEL LATERAL ══ */
 .reportes-side {
     background: #f8faf8;
     border-left: 1px solid #c8dec8;
@@ -205,7 +201,6 @@
 .tag-pend  { background: #fef3c7; color: #92400e; }
 .tag-rech  { background: #fee2e2; color: #991b1b; }
 
-/* ══ FOOTER ══ */
 .footer-bar {
     background: var(--g1);
     color: var(--g4);
@@ -214,7 +209,6 @@
     font-size: 13px;
 }
 
-/* ══ RESPONSIVO ══ */
 @media (max-width: 768px) {
     .reportes-layout {
         grid-template-columns: 1fr;
