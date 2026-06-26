@@ -64,7 +64,6 @@
     background: var(--g1);
 }
 
-/* ══ FILTROS ══ */
 .explorar-filtros {
     padding: 14px 40px;
     background: #f8faf8;
@@ -125,7 +124,6 @@
     border-color: var(--g2);
 }
 
-/* ══ CUERPO ══ */
 .explorar-body {
     padding: 28px 40px 40px;
     background: white;
@@ -240,7 +238,7 @@
     font-weight: 700;
 }
 
-/* ══ SEMÁFORO ══ */
+/* semaforo */
 .semaforo {
     display: inline-flex;
     align-items: center;
@@ -255,7 +253,6 @@
 .sem-warn { background: #fef3c7; color: #92400e; }
 .sem-risk { background: #fee2e2; color: #991b1b; }
 
-/* ══ SIN RESULTADOS ══ */
 .sin-resultados {
     text-align: center;
     padding: 60px 20px;
@@ -266,7 +263,6 @@
 .sin-resultados-texto { font-size: 16px; font-weight: 800; color: var(--g1); margin-bottom: 6px; }
 .sin-resultados-sub { font-size: 13px; }
 
-/* ══ PAGINACIÓN ══ */
 .explorar-pagination {
     display: flex;
     justify-content: center;
@@ -297,7 +293,6 @@
     border-color: var(--g3);
 }
 
-/* ══ FOOTER ══ */
 .footer-bar {
     background: var(--g1);
     color: var(--g4);
@@ -306,7 +301,7 @@
     font-size: 13px;
 }
 
-/* ══ RESPONSIVO ══ */
+/* responsive */
 @media (max-width: 900px) {
     .explorar-grid {
         grid-template-columns: repeat(2, 1fr);

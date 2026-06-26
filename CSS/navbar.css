@@ -80,7 +80,7 @@
     color: var(--g1);
 }
 
-/* ── RESPONSIVE ── */
+
 @media (max-width: 768px) {
     .navbar {
         flex-wrap: wrap;
