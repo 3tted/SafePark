@@ -1,0 +1,225 @@
+.admin-hero {
+    background: linear-gradient(135deg, var(--g1), var(--g2));
+    color: white;
+    padding: 32px 48px;
+}
+
+.admin-hero h2 {
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.admin-hero p {
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.admin-badge {
+    background: var(--g5);
+    color: var(--g1) !important;
+    border-radius: 20px;
+    padding: 4px 12px !important;
+    font-weight: 800 !important;
+    font-size: 0.82rem !important;
+}
+
+/* Stats */
+.admin-stats {
+    display: flex;
+    gap: 20px;
+    padding: 24px 40px;
+    background: white;
+    border-bottom: 2px solid var(--g5);
+    flex-wrap: wrap;
+}
+
+.astat {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--g5);
+}
+
+.astat-warn {
+    background: #fef3c7;
+}
+
+.astat-n {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--g1);
+    line-height: 1;
+}
+
+.astat-warn .astat-n {
+    color: #b45309;
+}
+
+.astat-l {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+/* Mensajes globales */
+.msg-ok-global {
+    background: var(--g5);
+    color: var(--g1);
+    border-left: 4px solid var(--g3);
+    padding: 12px 40px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.msg-err-global {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-left: 4px solid var(--risk);
+    padding: 12px 40px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Layout */
+.admin-layout {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+/* Tabs */
+.admin-tabs {
+    display: flex;
+    gap: 4px;
+    background: white;
+    border-radius: 12px 12px 0 0;
+    padding: 6px 6px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border-bottom: 2px solid var(--g5);
+}
+
+.admin-tab {
+    padding: 10px 24px;
+    border-radius: 8px 8px 0 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.admin-tab:hover {
+    background: var(--g5);
+    color: var(--g2);
+}
+
+.admin-tab.active {
+    background: var(--g5);
+    color: var(--g1);
+}
+
+.atab-panel {
+    background: white;
+    border-radius: 0 0 12px 12px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    overflow-x: auto;
+}
+
+/* Tabla */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--g5);
+    color: var(--g1);
+    font-weight: 800;
+    border-bottom: 2px solid var(--g4);
+}
+
+.admin-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.admin-table tr:hover td {
+    background: #fafafa;
+}
+
+.tabla-vacia {
+    text-align: center;
+    color: var(--muted);
+    padding: 32px !important;
+}
+
+.desc-cell {
+    max-width: 200px;
+    color: var(--muted);
+}
+
+/* Tags */
+.tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tag-pend  { background: #fef3c7; color: #92400e; }
+.tag-proc  { background: #dbeafe; color: #1e40af; }
+.tag-aprov { background: var(--g5); color: var(--g1); }
+.tag-rech  { background: #fee2e2; color: #b91c1c; }
+.tag-admin { background: #ede9fe; color: #5b21b6; }
+
+/* Acciones */
+.form-estado {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.select-estado {
+    padding: 5px 8px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 6px;
+    font-family: "Nunito", sans-serif;
+    font-size: 0.82rem;
+    color: #1a1a1a;
+    background: white;
+}
+
+.btn-actualizar {
+    padding: 5px 10px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-actualizar:hover {
+    background: var(--g1);
+}
+
+.footer-bar {
+    text-align: center;
+    padding: 16px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 32px;
+    border-top: 1px solid #e5e7eb;
+}

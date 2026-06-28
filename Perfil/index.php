@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil - SafePark</title>
+    <link rel="icon" href="../Assets/logo.png">
     <link rel="stylesheet" href="../CSS/styles.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -19,7 +20,7 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $id = $_SESSION['id_usuario'];
-$stmt = $conn->prepare("SELECT nombre, email, fecha_registro FROM USUARIO WHERE id_usuario = ?");
+$stmt = $conn->prepare("SELECT nombre, email, fecha_registro, foto_perfil FROM USUARIO WHERE id_usuario = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -29,28 +30,22 @@ $nombre = htmlspecialchars($usuario['nombre']);
 $email  = htmlspecialchars($usuario['email']);
 $fecha  = date('d/m/Y', strtotime($usuario['fecha_registro']));
 $inicial = strtoupper(mb_substr($nombre, 0, 1));
-?>
+$foto   = $usuario['foto_perfil'] ?? null;
 
-    <nav class="navbar">
-        <a class="nav-logo" href="../Home/index.html">
-            <img src="../Assets/logo.png" height="50" alt="SafePark logo">
-            <span class="nav-logo-text">Safe<span>Park</span></span>
-        </a>
-        <div class="nav-links">
-            <a class="nav-link" href="../Home/index.html">Inicio</a>
-            <a class="nav-link" href="../Mapa/index.html">Mapa</a>
-            <a class="nav-link" href="../Explorar/index.html">Explorar</a>
-            <a class="nav-link" href="../Reportar/index.html">Reportar</a>
-            <a class="nav-link" href="../Comunidad/index.html">Comunidad</a>
-        </div>
-        <div class="nav-right">
-            <a class="btn-nav" href="../Login/index.php">Cerrar sesión</a>
-        </div>
-    </nav>
+$nav_base   = '../';
+$nav_active = 'perfil';
+require_once '../includes/navbar.php';
+?>
 
     <!-- Hero del perfil -->
     <div class="perfil-hero">
-        <div class="perfil-avatar"><?= $inicial ?></div>
+        <div class="perfil-avatar">
+            <?php if ($foto): ?>
+                <img src="../Assets/fotos/<?= htmlspecialchars($foto) ?>" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+            <?php else: ?>
+                <?= $inicial ?>
+            <?php endif; ?>
+        </div>
         <div class="perfil-hero-info">
             <h2><?= $nombre ?></h2>
             <p class="perfil-email"><?= $email ?></p>
@@ -91,7 +86,7 @@ $inicial = strtoupper(mb_substr($nombre, 0, 1));
                     <span class="pinfo-label">Ciudad</span>
                     <span class="pinfo-val">Ciudad Juárez</span>
                 </div>
-                <button class="btn-editar">✏️ Editar perfil</button>
+                <a class="btn-editar" href="editar.php">✏️ Editar perfil</a>
             </div>
 
             <div class="pcard">
@@ -147,7 +142,7 @@ $inicial = strtoupper(mb_substr($nombre, 0, 1));
                     <div class="pempty-icon">📋</div>
                     <div class="pempty-text">Aún no has enviado reportes</div>
                     <div class="pempty-sub">Ayuda a la comunidad reportando áreas verdes</div>
-                    <a class="btn-ir" href="../Reportar/index.html">Crear reporte</a>
+                    <a class="btn-ir" href="../Reportar/index.php">Crear reporte</a>
                 </div>
             </div>
 
