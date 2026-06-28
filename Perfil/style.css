@@ -1,0 +1,299 @@
+/* ===== HERO ===== */
+.perfil-hero {
+    background: linear-gradient(135deg, var(--g1), var(--g2));
+    color: white;
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.perfil-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: var(--g3);
+    color: white;
+    font-size: 2.4rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 3px solid rgba(255,255,255,0.3);
+}
+
+.perfil-hero-info {
+    flex: 1;
+}
+
+.perfil-hero-info h2 {
+    font-size: 1.7rem;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.perfil-email {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.perfil-fecha {
+    font-size: 0.82rem;
+    opacity: 0.65;
+    margin-bottom: 12px;
+}
+
+.perfil-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pbadge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.perfil-stats {
+    display: flex;
+    gap: 32px;
+}
+
+.pstat {
+    text-align: center;
+}
+
+.pstat-n {
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.pstat-l {
+    font-size: 0.78rem;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+/* ===== LAYOUT ===== */
+.perfil-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+/* ===== CARDS ===== */
+.pcard {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    margin-bottom: 20px;
+}
+
+.pcard-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--g1);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--g5);
+}
+
+.pinfo-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.88rem;
+}
+
+.pinfo-row:last-of-type {
+    border-bottom: none;
+}
+
+.pinfo-label {
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.pinfo-val {
+    font-weight: 700;
+    color: #1a1a1a;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+}
+
+.btn-editar {
+    width: 100%;
+    margin-top: 16px;
+    padding: 9px;
+    border: 2px solid var(--g3);
+    background: white;
+    color: var(--g2);
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-editar:hover {
+    background: var(--g5);
+}
+
+/* ===== LOGROS ===== */
+.logro-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.logro-item:last-child {
+    border-bottom: none;
+}
+
+.logro-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.logro-icon.lock {
+    filter: grayscale(1);
+    opacity: 0.4;
+}
+
+.logro-info {
+    flex: 1;
+}
+
+.logro-nombre {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+.logro-desc {
+    font-size: 0.77rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.logro-pts {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--g2);
+    white-space: nowrap;
+}
+
+/* ===== TABS ===== */
+.perfil-tabs {
+    display: flex;
+    gap: 4px;
+    background: white;
+    border-radius: 14px 14px 0 0;
+    padding: 6px 6px 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border-bottom: 2px solid var(--g5);
+}
+
+.perfil-tab {
+    padding: 10px 20px;
+    border-radius: 10px 10px 0 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.perfil-tab:hover {
+    background: var(--g5);
+    color: var(--g2);
+}
+
+.perfil-tab.active {
+    background: var(--g5);
+    color: var(--g1);
+}
+
+.ptab-panel {
+    background: white;
+    border-radius: 0 0 14px 14px;
+    padding: 32px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    min-height: 280px;
+}
+
+/* ===== EMPTY STATE ===== */
+.pempty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.pempty-icon {
+    font-size: 2.8rem;
+    margin-bottom: 4px;
+}
+
+.pempty-text {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+.pempty-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.btn-ir {
+    display: inline-block;
+    padding: 9px 22px;
+    background: var(--g2);
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: background 0.2s;
+    margin-top: 4px;
+}
+
+.btn-ir:hover {
+    background: var(--g1);
+}
+
+/* ===== FOOTER ===== */
+.footer-bar {
+    text-align: center;
+    padding: 16px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 32px;
+    border-top: 1px solid #e5e7eb;
+}

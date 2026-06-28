@@ -60,7 +60,6 @@ function aplicarFiltros() {
         grid.appendChild(c);
     });
 
-    // Contador y mensaje vacío
     document.getElementById('total-areas').textContent = `${visibles.length} área${visibles.length !== 1 ? 's' : ''}`;
     document.getElementById('sin-resultados').style.display = visibles.length === 0 ? 'block' : 'none';
     document.querySelector('.explorar-pagination').style.display = visibles.length === 0 ? 'none' : 'flex';
