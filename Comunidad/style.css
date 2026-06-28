@@ -477,3 +477,120 @@
         font-size: 12px;
     }
 }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 24px;
+}
+
+.modal-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g1);
+    margin-bottom: 6px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    transition: border-color 0.2s;
+    background: #fafafa;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: var(--g3);
+    background: white;
+}
+
+.modal-row {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-cancelar-modal {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: var(--muted);
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cancelar-modal:hover { background: #f3f4f6; }
+
+.btn-guardar-modal {
+    flex: 2;
+    padding: 10px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-guardar-modal:hover { background: var(--g1); }
+
+.msg-ok-feed {
+    background: var(--g5);
+    color: var(--g1);
+    border: 1px solid var(--g4);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.msg-err-feed {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
