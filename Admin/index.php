@@ -11,27 +11,9 @@
 <body>
 
 <?php
-session_start();
 require_once '../database/conexion.php';
-
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
-
-// Verificar rol admin
-$id = $_SESSION['id_usuario'];
-$check = $conn->prepare("SELECT rol FROM USUARIO WHERE id_usuario = ?");
-$check->bind_param("i", $id);
-$check->execute();
-$check->bind_result($rol);
-$check->fetch();
-$check->close();
-
-if ($rol !== 'admin') {
-    header('Location: ../Home/index.html');
-    exit;
-}
+require_once '../includes/auth.php';
+requiere_admin($conn);
 
 // Estadísticas generales
 $total_usuarios = $conn->query("SELECT COUNT(*) FROM USUARIO")->fetch_row()[0];
@@ -56,6 +38,13 @@ $usuarios = $conn->query("
     FROM USUARIO
     ORDER BY fecha_registro DESC
     LIMIT 10
+");
+
+// Áreas
+$areas_admin = $conn->query("
+    SELECT id_area, nombre, colonia, tipo, lat, lng
+    FROM AREA
+    ORDER BY id_area DESC
 ");
 
 $exito = $_GET['exito'] ?? '';
@@ -107,6 +96,7 @@ require_once '../includes/navbar.php';
         <div class="admin-tabs">
             <div class="admin-tab active" onclick="cambiarTab(this,'reportes')">📋 Reportes</div>
             <div class="admin-tab" onclick="cambiarTab(this,'usuarios')">👤 Usuarios</div>
+            <div class="admin-tab" onclick="cambiarTab(this,'areas')">📍 Áreas</div>
         </div>
 
         <!-- Tab Reportes -->
@@ -203,7 +193,51 @@ require_once '../includes/navbar.php';
             </table>
         </div>
 
+        <!-- Tab Áreas -->
+        <div class="atab-panel" id="tab-areas" style="display:none;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Colonia</th>
+                        <th>Tipo</th>
+                        <th>Coordenadas</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if ($areas_admin->num_rows === 0): ?>
+                    <tr><td colspan="6" class="tabla-vacia">No hay áreas.</td></tr>
+                <?php else:
+                    while ($a = $areas_admin->fetch_assoc()):
+                ?>
+                    <tr>
+                        <td><?= $a['id_area'] ?></td>
+                        <td><?= htmlspecialchars($a['nombre']) ?></td>
+                        <td><?= htmlspecialchars($a['colonia'] ?? '—') ?></td>
+                        <td><?= htmlspecialchars($a['tipo'] ?? '—') ?></td>
+                        <td style="font-size:0.78rem;color:var(--muted);"><?= $a['lat'] ?? '—' ?>, <?= $a['lng'] ?? '—' ?></td>
+                        <td>
+                            <button class="btn-actualizar" onclick='abrirEditarArea(<?= json_encode($a) ?>)'>✏️ Editar</button>
+                            <form action="eliminar_area.php" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar esta área?')">
+                                <input type="hidden" name="id_area" value="<?= $a['id_area'] ?>">
+                                <button class="btn-actualizar" style="background:var(--risk);" type="submit">🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endwhile; endif; ?>
+                </tbody>
+            </table>
+        </div>
+
     </div>
+
+    <?php
+    $accion_editar_area = 'actualizar_area.php';
+    $mostrar_btn_ubicacion = false;
+    require '../includes/modal_editar_area.php';
+    ?>
 
     <div class="footer-bar">SafePark · Panel Admin · Ciudad Juárez</div>
 

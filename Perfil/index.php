@@ -11,13 +11,9 @@
 <body>
 
 <?php
-session_start();
 require_once '../database/conexion.php';
-
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
+require_once '../includes/auth.php';
+requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
 $stmt = $conn->prepare("SELECT nombre, email, fecha_registro, foto_perfil FROM USUARIO WHERE id_usuario = ?");
@@ -152,7 +148,7 @@ require_once '../includes/navbar.php';
                     <div class="pempty-icon">❤️</div>
                     <div class="pempty-text">Aún no tienes favoritos</div>
                     <div class="pempty-sub">Explora áreas verdes y guárdalas aquí</div>
-                    <a class="btn-ir" href="../Explorar/index.html">Explorar áreas</a>
+                    <a class="btn-ir" href="../Explorar/index.php">Explorar áreas</a>
                 </div>
             </div>
 

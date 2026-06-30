@@ -223,3 +223,94 @@
     margin-top: 32px;
     border-top: 1px solid #e5e7eb;
 }
+
+/* ===== MODAL EDITAR ÁREA ===== */
+.modal-overlay-admin {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-card-admin {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-title-admin {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 20px;
+}
+
+.modal-label-admin {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g1);
+    margin-bottom: 6px;
+}
+
+.modal-input-admin {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    background: #fafafa;
+}
+
+.modal-input-admin:focus {
+    outline: none;
+    border-color: var(--g3);
+    background: white;
+}
+
+.modal-row-admin {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-btns-admin {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-cancelar-modal-admin {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: var(--muted);
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-cancelar-modal-admin:hover { background: #f3f4f6; }
+
+.btn-guardar-modal-admin {
+    flex: 2;
+    padding: 10px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-guardar-modal-admin:hover { background: var(--g1); }

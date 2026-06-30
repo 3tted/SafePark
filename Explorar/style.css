@@ -343,3 +343,51 @@
         display: none;
     }
 }
+
+/* ===== Autocompletado búsqueda Explorar ===== */
+.sugerencias-box-explorar {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    z-index: 50;
+    max-height: 280px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.sugerencia-item-explorar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.sugerencia-item-explorar:last-child {
+    border-bottom: none;
+}
+
+.sugerencia-item-explorar:hover {
+    background: var(--g5);
+}
+
+.sugerencia-icono-explorar {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.sugerencia-nombre-explorar {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g1);
+}
+
+.sugerencia-meta-explorar {
+    font-size: 0.75rem;
+    color: var(--muted);
+}

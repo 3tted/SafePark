@@ -11,13 +11,9 @@
 <body>
 
 <?php
-session_start();
 require_once '../database/conexion.php';
-
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
+require_once '../includes/auth.php';
+requiere_sesion();
 
 // Stats reales
 $total_usuarios = $conn->query("SELECT COUNT(*) FROM USUARIO")->fetch_row()[0];

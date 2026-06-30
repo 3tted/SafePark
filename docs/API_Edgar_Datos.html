@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; margin: 2.5cm; color: #1a1a1a; }
+  h1 { font-size: 20pt; color: #1B4332; border-bottom: 3px solid #40916C; padding-bottom: 6px; }
+  h2 { font-size: 14pt; color: #2D6A4F; margin-top: 20px; }
+  h3 { font-size: 11pt; color: #40916C; margin-top: 14px; }
+  pre { background: #f4f4f4; border-left: 4px solid #40916C; padding: 12px 16px; font-family: Consolas, monospace; font-size: 9.5pt; white-space: pre-wrap; word-break: break-all; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+  th { background: #2D6A4F; color: white; padding: 8px 10px; text-align: left; }
+  td { border: 1px solid #c8dec8; padding: 7px 10px; vertical-align: top; }
+  tr:nth-child(even) td { background: #f0faf4; }
+  .badge { background: #d8f3dc; color: #1B4332; padding: 2px 10px; border-radius: 20px; font-size: 9pt; font-weight: bold; }
+  .note { background: #fff8e1; border-left: 4px solid #f4a261; padding: 10px 14px; margin-top: 10px; font-size: 10pt; }
+  ul { margin-top: 4px; }
+  li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<h1>📊 API de Datos — SafePark</h1>
+<p><strong>Responsable:</strong> Edgar &nbsp;|&nbsp; <strong>Puerto:</strong> 3002 &nbsp;|&nbsp; <strong>Tecnología:</strong> Node.js + Express + MySQL</p>
+
+<h2>1. Descripción</h2>
+<p>Esta API expone endpoints REST para consultar áreas verdes, reportes, eventos y estadísticas generales del sistema SafePark. Se conecta a la base de datos <code>safepark_db</code> en MySQL.</p>
+
+<h2>2. Requisitos previos</h2>
+<ul>
+  <li>Node.js instalado (<a href="https://nodejs.org">nodejs.org</a>)</li>
+  <li>XAMPP corriendo con MySQL activo</li>
+  <li>Base de datos <code>safepark_db</code> ya creada</li>
+</ul>
+
+<h2>3. Instalación</h2>
+<p>Abrir terminal en la raíz del proyecto y ejecutar:</p>
+<pre>mkdir API_Datos
+cd API_Datos
+npm init -y
+npm install express mysql2 cors dotenv</pre>
+
+<h2>4. Archivo de configuración (.env)</h2>
+<p>Crear el archivo <code>API_Datos/.env</code> con:</p>
+<pre>DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=safepark_db
+PORT=3002</pre>
+
+<div class="note">⚠️ No subir el archivo <code>.env</code> a GitHub. Agregar <code>.env</code> al <code>.gitignore</code>.</div>
+
+<h2>5. Código principal (index.js)</h2>
+<p>Crear el archivo <code>API_Datos/index.js</code>:</p>
+<pre>const express = require('express');
+const mysql = require('mysql2/promise');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
+
+// GET /areas — todas las áreas con coordenadas
+app.get('/areas', async (req, res) => {
+    const [rows] = await pool.query(
+        'SELECT * FROM AREA WHERE lat IS NOT NULL AND lng IS NOT NULL ORDER BY id_area DESC'
+    );
+    res.json(rows);
+});
+
+// GET /areas/:id — detalle de un área
+app.get('/areas/:id', async (req, res) => {
+    const [rows] = await pool.query(
+        'SELECT * FROM AREA WHERE id_area = ?', [req.params.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'No encontrada' });
+    res.json(rows[0]);
+});
+
+// GET /areas/:id/reportes — reportes de un área específica
+app.get('/areas/:id/reportes', async (req, res) => {
+    const [rows] = await pool.query(
+        'SELECT * FROM REPORTE WHERE id_area = ? ORDER BY fecha DESC',
+        [req.params.id]
+    );
+    res.json(rows);
+});
+
+// GET /estadisticas — resumen general del sistema
+app.get('/estadisticas', async (req, res) => {
+    const [[{ total_areas }]]    = await pool.query('SELECT COUNT(*) as total_areas FROM AREA');
+    const [[{ total_usuarios }]] = await pool.query('SELECT COUNT(*) as total_usuarios FROM USUARIO');
+    const [[{ total_reportes }]] = await pool.query('SELECT COUNT(*) as total_reportes FROM REPORTE');
+    const [[{ total_eventos }]]  = await pool.query('SELECT COUNT(*) as total_eventos FROM EVENTO');
+    res.json({ total_areas, total_usuarios, total_reportes, total_eventos });
+});
+
+// GET /reportes — reportes recientes con nombre de usuario y área
+app.get('/reportes', async (req, res) => {
+    const limite = parseInt(req.query.limite) || 20;
+    const [rows] = await pool.query(
+        `SELECT R.*, U.nombre as usuario, A.nombre as area
+         FROM REPORTE R
+         JOIN USUARIO U ON R.id_usuario = U.id_usuario
+         JOIN AREA A ON R.id_area = A.id_area
+         ORDER BY R.fecha DESC LIMIT ?`,
+        [limite]
+    );
+    res.json(rows);
+});
+
+// GET /eventos — todos los eventos con creador y área
+app.get('/eventos', async (req, res) => {
+    const [rows] = await pool.query(
+        `SELECT E.*, U.nombre as creador, A.nombre as area
+         FROM EVENTO E
+         JOIN USUARIO U ON E.id_usuario = U.id_usuario
+         LEFT JOIN AREA A ON E.id_area = A.id_area
+         ORDER BY E.fecha ASC`
+    );
+    res.json(rows);
+});
+
+app.listen(process.env.PORT, () =>
+    console.log('API Datos corriendo en puerto ' + process.env.PORT)
+);</pre>
+
+<h2>6. Cómo correr la API</h2>
+<pre>cd API_Datos
+node index.js</pre>
+<p>Deberías ver: <code>API Datos corriendo en puerto 3002</code></p>
+
+<h2>7. Endpoints disponibles</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td><span class="badge">GET</span></td><td>/areas</td><td>Lista todas las áreas con coordenadas</td></tr>
+  <tr><td><span class="badge">GET</span></td><td>/areas/:id</td><td>Detalle de un área por ID</td></tr>
+  <tr><td><span class="badge">GET</span></td><td>/areas/:id/reportes</td><td>Reportes de un área específica</td></tr>
+  <tr><td><span class="badge">GET</span></td><td>/estadisticas</td><td>Totales generales del sistema</td></tr>
+  <tr><td><span class="badge">GET</span></td><td>/reportes</td><td>Reportes recientes (con ?limite=N)</td></tr>
+  <tr><td><span class="badge">GET</span></td><td>/eventos</td><td>Todos los eventos próximos</td></tr>
+</table>
+
+<h2>8. Probar la API</h2>
+<p>Abrir el navegador o usar <strong>Postman</strong>:</p>
+<pre>http://localhost:3002/estadisticas
+http://localhost:3002/areas
+http://localhost:3002/reportes?limite=5</pre>
+
+<div class="note">💡 El parámetro <code>?limite=N</code> en <code>/reportes</code> controla cuántos resultados devuelve. Por defecto son 20.</div>
+
+</body>
+</html>

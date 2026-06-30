@@ -1,27 +1,21 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/auth.php';
 
 $es_admin = false;
 if (isset($_SESSION['id_usuario'])) {
     require_once __DIR__ . '/../database/conexion.php';
-    $__stmt = $conn->prepare("SELECT rol FROM USUARIO WHERE id_usuario = ?");
-    $__stmt->bind_param("i", $_SESSION['id_usuario']);
-    $__stmt->execute();
-    $__stmt->bind_result($__rol);
-    $__stmt->fetch();
-    $__stmt->close();
-    $es_admin = ($__rol === 'admin');
+    $es_admin = es_admin($conn, $_SESSION['id_usuario']);
 }
 ?>
 <nav class="navbar">
-    <a class="nav-logo" href="<?= $nav_base ?>Home/index.html">
+    <a class="nav-logo" href="<?= $nav_base ?>Home/index.php">
         <img src="<?= $nav_base ?>Assets/logo.png" height="50" alt="SafePark logo">
         <span class="nav-logo-text">Safe<span>Park</span></span>
     </a>
     <div class="nav-links">
-        <a class="nav-link <?= ($nav_active==='inicio') ? 'active':'' ?>" href="<?= $nav_base ?>Home/index.html">Inicio</a>
-        <a class="nav-link <?= ($nav_active==='mapa') ? 'active':'' ?>" href="<?= $nav_base ?>Mapa/index.html">Mapa</a>
-        <a class="nav-link <?= ($nav_active==='explorar') ? 'active':'' ?>" href="<?= $nav_base ?>Explorar/index.html">Explorar</a>
+        <a class="nav-link <?= ($nav_active==='inicio') ? 'active':'' ?>" href="<?= $nav_base ?>Home/index.php">Inicio</a>
+        <a class="nav-link <?= ($nav_active==='mapa') ? 'active':'' ?>" href="<?= $nav_base ?>Mapa/index.php">Mapa</a>
+        <a class="nav-link <?= ($nav_active==='explorar') ? 'active':'' ?>" href="<?= $nav_base ?>Explorar/index.php">Explorar</a>
         <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/index.php">Reportar</a>
         <a class="nav-link <?= ($nav_active==='comunidad') ? 'active':'' ?>" href="<?= $nav_base ?>Comunidad/index.php">Comunidad</a>
     </div>

@@ -1,24 +1,7 @@
 <?php
-session_start();
 require_once '../database/conexion.php';
-
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
-
-$id = $_SESSION['id_usuario'];
-$check = $conn->prepare("SELECT rol FROM USUARIO WHERE id_usuario = ?");
-$check->bind_param("i", $id);
-$check->execute();
-$check->bind_result($rol);
-$check->fetch();
-$check->close();
-
-if ($rol !== 'admin') {
-    header('Location: ../Home/index.html');
-    exit;
-}
+require_once '../includes/auth.php';
+requiere_admin($conn);
 
 $id_reporte = intval($_POST['id_reporte'] ?? 0);
 $estado     = $_POST['estado'] ?? '';

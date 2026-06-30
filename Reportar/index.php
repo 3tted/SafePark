@@ -11,13 +11,9 @@
 <body>
 
 <?php
-session_start();
 require_once '../database/conexion.php';
-
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
+require_once '../includes/auth.php';
+requiere_sesion();
 
 $id_usuario = $_SESSION['id_usuario'];
 $exito = $_GET['exito'] ?? '';
