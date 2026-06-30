@@ -2,6 +2,8 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html { overflow-y: scroll; scrollbar-gutter: stable; }
+
 :root {
     --g1: #1B4332;
     --g2: #2D6A4F;
@@ -18,4 +20,11 @@ body {
     font-family: "Nunito", sans-serif;
     background: #f9fafb;
     color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.footer-bar {
+    margin-top: auto;
 }

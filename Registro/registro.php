@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         $_SESSION['id_usuario'] = $conn->insert_id;
         $_SESSION['nombre']     = $nombre;
-        header('Location: ../Home/index.html');
+        header('Location: ../Home/index.php');
         exit;
     }
 
