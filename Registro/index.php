@@ -15,7 +15,7 @@
                 <img src="../Assets/logo.png" height="100" alt="SafePark logo">
                 <h1>Safe<span>Park</span></h1>
             </div>
-            <p class="form-subtitle">Crea tu cuenta y comienaza a explorar</p>
+            <p class="form-subtitle">Crea tu cuenta y comienza a explorar</p>
             <form action="registro.php" method="POST">
                 <div class="form-group">
                     <label class="form-label">Nombre</label>

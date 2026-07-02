@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Verificar si el emaial ya existe
+    // Verificar si el email ya existe
     $check = $conn->prepare("SELECT id_usuario FROM USUARIO WHERE email = ?");
     $check->bind_param("s", $email);
     $check->execute();

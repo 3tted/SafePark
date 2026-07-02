@@ -126,8 +126,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #e9f5ee;
   position: relative;
+}
+
+#map {
+  flex: 1;
+  min-height: 0;
 }
 
 #resultado {
@@ -212,6 +216,170 @@
 .dot.risk {
   background: var(--risk);
 }
+.btn-ubicacion {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
+    padding: 8px 16px;
+    background: white;
+    border: 2px solid var(--g3);
+    border-radius: 20px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--g2);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: background 0.2s;
+}
+
+.btn-ubicacion:hover {
+    background: var(--g5);
+}
+
+.btn-agregar-area {
+    position: absolute;
+    bottom: 70px;
+    right: 16px;
+    z-index: 1000;
+    padding: 12px 22px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: background 0.2s;
+}
+
+.btn-agregar-area:hover {
+    background: var(--g1);
+}
+
+.aviso-agregar {
+    display: none;
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: var(--g1);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    white-space: nowrap;
+}
+
+.msg-ok-mapa, .msg-err-mapa {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.msg-ok-mapa {
+    background: var(--g5);
+    color: var(--g1);
+}
+
+.msg-err-mapa {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Modal (reutilizado de Comunidad) */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-title {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 20px;
+}
+
+.modal-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g1);
+    margin-bottom: 6px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    background: #fafafa;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: var(--g3);
+    background: white;
+}
+
+.modal-btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-cancelar-modal {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: var(--muted);
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-cancelar-modal:hover { background: #f3f4f6; }
+
+.btn-guardar-modal {
+    flex: 2;
+    padding: 10px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-guardar-modal:hover { background: var(--g1); }
+
 @media (max-width: 768px) {
     .mapa-page {
         flex-direction: column;
@@ -236,3 +404,89 @@
         flex-wrap: nowrap;
     }
 }
+
+/* ===== MODAL EDITAR ÁREA (compartido) ===== */
+.modal-overlay-admin {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-card-admin {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.modal-title-admin {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--g1);
+    margin-bottom: 20px;
+}
+
+.modal-label-admin {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--g1);
+    margin-bottom: 6px;
+}
+
+.modal-input-admin {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    background: #fafafa;
+}
+
+.modal-input-admin:focus {
+    outline: none;
+    border-color: var(--g3);
+    background: white;
+}
+
+.modal-btns-admin {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-cancelar-modal-admin {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: var(--muted);
+    font-family: "Nunito", sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-cancelar-modal-admin:hover { background: #f3f4f6; }
+
+.btn-guardar-modal-admin {
+    flex: 2;
+    padding: 10px;
+    background: var(--g2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: "Nunito", sans-serif;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-guardar-modal-admin:hover { background: var(--g1); }
