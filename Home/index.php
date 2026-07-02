@@ -53,6 +53,10 @@ require_once '../includes/navbar.php';
                 <div class="stat"><div class="stat-n"><?= $total_reportes ?></div><div class="stat-l">Reportes</div></div>
                 <div class="stat"><div class="stat-n"><?= $total_usuarios ?></div><div class="stat-l">Usuarios</div></div>
             </div>
+            <div id="clima-widget" style="display:flex;align-items:center;gap:8px;color:white;font-size:13px;font-weight:700;margin-top:10px;background:rgba(0,0,0,0.15);padding:6px 16px;border-radius:20px;">
+                <span id="clima-icono">⏳</span>
+                <span id="clima-texto">Cargando clima...</span>
+            </div>
         </div>
     </div>
     <div class="map-section">
@@ -163,5 +167,34 @@ require_once '../includes/navbar.php';
         homeMap.on('click', () => window.location.href = '../Mapa/index.php');
     </script>
     <script src="../Javascript/archivo.js"></script>
+    <script>
+        fetch('clima.php')
+            .then(r => r.json())
+            .then(data => {
+                if (data.cod !== 200) {
+                    document.getElementById('clima-texto').textContent = 'Clima no disponible';
+                    return;
+                }
+                const temp    = Math.round(data.main.temp);
+                const desc    = data.weather[0].description;
+                const humedad = data.main.humidity;
+                const codigo  = data.weather[0].id;
+
+                let icono = '🌤️';
+                if      (codigo >= 200 && codigo < 300) icono = '⛈️';
+                else if (codigo >= 300 && codigo < 400) icono = '🌦️';
+                else if (codigo >= 500 && codigo < 600) icono = '🌧️';
+                else if (codigo >= 600 && codigo < 700) icono = '❄️';
+                else if (codigo >= 700 && codigo < 800) icono = '🌫️';
+                else if (codigo === 800)                icono = '☀️';
+                else if (codigo > 800)                  icono = '⛅';
+
+                document.getElementById('clima-icono').textContent = icono;
+                document.getElementById('clima-texto').textContent  = `${temp}°C · ${desc} · Humedad ${humedad}%`;
+            })
+            .catch(() => {
+                document.getElementById('clima-texto').textContent = 'Clima no disponible';
+            });
+    </script>
 </body>
 </html>
