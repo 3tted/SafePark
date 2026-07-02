@@ -1,0 +1,10 @@
+# API keys — no subir al repositorio
+includes/config_clima.php
+
+# Node
+node_modules/
+API_Usuarios/node_modules/
+API_Datos/node_modules/
+.env
+API_Usuarios/.env
+API_Datos/.env
