@@ -34,6 +34,12 @@
             <input type="text" id="busqueda" placeholder="Buscar por nombre, colonia o tipo de área..." oninput="filtrarAreas()">
             <button class="btn-search" onclick="filtrarAreas()">Buscar</button>
         </div>
+    <div id="sugerencias-box-nominatim-explorar"
+        style="display:none; position:absolute; top:52px; left:0; right:0;
+        background:white; border-radius:12px;
+        box-shadow:0 6px 20px rgba(0,0,0,0.18); z-index:60;
+        max-height:280px; overflow-y:auto; text-align:left;">
+</div>    
     </div>
 
     <!-- Filtros -->
@@ -189,5 +195,59 @@
     <div class="footer-bar">SafePark · Explorar áreas · Ciudad Juárez</div>
 
     <script src="explorar.js"></script>
+    <script>
+let nominatimTimerExplorar = null;
+
+document.getElementById('busqueda').addEventListener('input', function() {
+    clearTimeout(nominatimTimerExplorar);
+    const texto = this.value.trim();
+    const box = document.getElementById('sugerencias-box-nominatim-explorar');
+
+    if (texto.length < 3) { box.style.display = 'none'; return; }
+
+    nominatimTimerExplorar = setTimeout(() => {
+        const url = 'https://nominatim.openstreetmap.org/search'
+            + '?q=' + encodeURIComponent(texto + ' Ciudad Juarez')
+            + '&format=json&limit=5&countrycodes=mx'
+            + '&bounded=1&viewbox=-106.55,31.60,-106.35,31.78';
+
+        fetch(url, { headers: { 'Accept-Language': 'es' } })
+        .then(r => r.json())
+        .then(resultados => {
+            if (!resultados.length) { box.style.display = 'none'; return; }
+
+            box.innerHTML = resultados.map(r => `
+                <div onclick="seleccionarNominatimExplorar('${r.display_name.split(',')[0]}')"
+                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+                     cursor:pointer;border-bottom:1px solid #f3f4f6;font-family:Nunito,sans-serif;">
+                    <span style="font-size:1rem;flex-shrink:0;">📍</span>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1B4332;">
+                            ${r.display_name.split(',')[0]}
+                        </div>
+                        <div style="font-size:0.75rem;color:#6b7280;">
+                            ${r.display_name.split(',').slice(1,3).join(',')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            box.style.display = 'block';
+        })
+        .catch(() => { box.style.display = 'none'; });
+    }, 400);
+});
+
+function seleccionarNominatimExplorar(nombre) {
+    document.getElementById('busqueda').value = nombre;
+    document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
+    filtrarAreas();
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-bar-full') && !e.target.closest('#sugerencias-box-nominatim-explorar')) {
+        document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
+    }
+});
+</script>
 </body>
 </html>
