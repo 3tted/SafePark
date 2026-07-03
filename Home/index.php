@@ -47,6 +47,12 @@ require_once '../includes/navbar.php';
                     <button onclick="irABuscar()">Buscar</button>
                 </div>
                 <div class="sugerencias-box-home" id="sugerencias-box-home" style="display:none;"></div>
+                <div id="sugerencias-box-nominatim"
+                style="display:none; position:absolute; top:52px; left:0; right:0;
+                background:white; border-radius:12px;
+                box-shadow:0 6px 20px rgba(0,0,0,0.18); z-index:60;
+                max-height:280px; overflow-y:auto; text-align:left;">
+</div>
             </div>
             <div class="hero-stats">
                 <div class="stat"><div class="stat-n"><?= $total_areas ?></div><div class="stat-l">Areas registradas</div></div>
@@ -165,6 +171,60 @@ require_once '../includes/navbar.php';
         });
 
         homeMap.on('click', () => window.location.href = '../Mapa/index.php');
+        <script>
+let nominatimTimer = null;
+
+document.getElementById('home-busqueda').addEventListener('input', function() {
+    clearTimeout(nominatimTimer);
+    const texto = this.value.trim();
+    const box = document.getElementById('sugerencias-box-nominatim');
+
+    if (texto.length < 3) { box.style.display = 'none'; return; }
+
+    nominatimTimer = setTimeout(() => {
+        const url = 'https://nominatim.openstreetmap.org/search'
+            + '?q=' + encodeURIComponent(texto + ' Ciudad Juarez')
+            + '&format=json&limit=5&countrycodes=mx'
+            + '&bounded=1&viewbox=-106.55,31.60,-106.35,31.78';
+
+        fetch(url, { headers: { 'Accept-Language': 'es' } })
+        .then(r => r.json())
+        .then(resultados => {
+            if (!resultados.length) { box.style.display = 'none'; return; }
+
+            box.innerHTML = resultados.map(r => `
+                <div onclick="irANominatim(${r.lat}, ${r.lon}, '${r.display_name.split(',')[0].replace(/'/g, "\\'")}')"
+                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+                     cursor:pointer;border-bottom:1px solid #f3f4f6;font-family:Nunito,sans-serif;">
+                    <span style="font-size:1rem;flex-shrink:0;">📍</span>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1B4332;">
+                            ${r.display_name.split(',')[0]}
+                        </div>
+                        <div style="font-size:0.75rem;color:#6b7280;">
+                            ${r.display_name.split(',').slice(1,3).join(',')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            box.style.display = 'block';
+        })
+        .catch(() => { box.style.display = 'none'; });
+    }, 400);
+});
+
+function irANominatim(lat, lng, nombre) {
+    document.getElementById('home-busqueda').value = nombre;
+    document.getElementById('sugerencias-box-nominatim').style.display = 'none';
+    homeMap.setView([parseFloat(lat), parseFloat(lng)], 16);
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-bar') && !e.target.closest('#sugerencias-box-nominatim')) {
+        document.getElementById('sugerencias-box-nominatim').style.display = 'none';
+    }
+});
+</script>
     </script>
     <script src="../Javascript/archivo.js"></script>
     <script>
