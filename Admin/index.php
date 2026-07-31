@@ -15,15 +15,22 @@ require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_admin();
 
-$stats           = api_get('/areas/stats/resumen');
+$datos = api_get_multi([
+    'stats'    => '/areas/stats/resumen',
+    'reportes' => '/reportes',
+    'usuarios' => '/usuarios',
+    'areas'    => '/areas',
+]);
+
+$stats           = $datos['stats'];
 $total_usuarios  = $stats['total_usuarios'] ?? 0;
 $total_reportes  = $stats['total_reportes'] ?? 0;
 $reportes_pendientes = $stats['pendientes'] ?? 0;
 $total_areas     = $stats['total_areas'] ?? 0;
 
-$reportes    = api_get('/reportes');
-$usuarios    = api_get('/usuarios');
-$areas_admin = api_get('/areas');
+$reportes    = $datos['reportes'];
+$usuarios    = $datos['usuarios'];
+$areas_admin = $datos['areas'];
 
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';

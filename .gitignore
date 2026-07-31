@@ -1,9 +1,14 @@
-# API keys — no subir al repositorio
+# API keys y secretos — no subir al repositorio
 includes/config_clima.php
+includes/config_api.php
 
 # Node
 node_modules/
 .env
 
-# Diagnostico temporal del hosting — se sube por FTP a mano y se borra despues
+# Diagnosticos temporales del hosting — se suben a mano y se borran despues
 prueba_hosting.php
+diag.php
+
+# Contiene el secreto del API: se sube al hosting, nunca al repositorio
+.htaccess

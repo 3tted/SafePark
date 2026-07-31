@@ -1,12 +1,17 @@
 <?php
-// URL del API. En local usa localhost; al desplegar, define la variable de
-// entorno SAFEPARK_API (ej. https://safepark-production.up.railway.app/api)
-define('API_BASE', getenv('SAFEPARK_API') ?: 'http://localhost:3000/api');
+// Configuración del API, buscada en este orden:
+//   1. includes/config_api.php  (para hostings que no soportan SetEnv)
+//   2. variables de entorno     (Railway, o .htaccess con SetEnv)
+//   3. localhost                (desarrollo local, sin configurar nada)
+if (file_exists(__DIR__ . '/config_api.php')) {
+    require_once __DIR__ . '/config_api.php';
+}
 
-// Secreto compartido con el API. Solo se necesita para las operaciones de
-// escritura; las de lectura son publicas. Se configura con SAFEPARK_API_SECRET
-// y debe coincidir con la variable API_SECRET del servicio en Railway.
-define('API_SECRET', getenv('SAFEPARK_API_SECRET') ?: '');
+define('API_BASE',   defined('CFG_API_BASE')   ? CFG_API_BASE   : (getenv('SAFEPARK_API')        ?: 'http://localhost:3000/api'));
+
+// El secreto solo hace falta para las operaciones de escritura; las lecturas
+// son públicas. Debe coincidir con API_SECRET del servicio en Railway.
+define('API_SECRET', defined('CFG_API_SECRET') ? CFG_API_SECRET : (getenv('SAFEPARK_API_SECRET') ?: ''));
 
 // Cabeceras comunes a todas las llamadas que modifican datos
 function api_headers(): array {
@@ -44,10 +49,70 @@ function api_request(string $metodo, string $endpoint, ?array $data = null): arr
 }
 
 function api_get(string $endpoint): array {
-    $ctx  = stream_context_create(['http' => ['timeout' => 5]]);
+    $ctx  = stream_context_create(['http' => ['timeout' => 8]]);
     $json = @file_get_contents(API_BASE . $endpoint, false, $ctx);
     if ($json === false) return [];
     return json_decode($json, true) ?? [];
+}
+
+/**
+ * Pide varios endpoints a la vez.
+ *
+ * Cada llamada al API cuesta cerca de un segundo, casi todo en el saludo TLS y
+ * el viaje de ida y vuelta al servidor. Una página como Comunidad necesita
+ * cinco, y hacerlas en fila tardaba unos cuatro segundos. Lanzándolas en
+ * paralelo el costo total es el de la más lenta.
+ *
+ * Recibe un arreglo ['clave' => '/endpoint'] y devuelve ['clave' => resultado],
+ * conservando las claves para que la página lea cada respuesta por su nombre.
+ */
+function api_get_multi(array $endpoints): array {
+    if (!$endpoints) return [];
+
+    // Varios hostings compartidos deshabilitan parte de curl_multi_*. InfinityFree,
+    // por ejemplo, deja curl_multi_init pero bloquea curl_multi_exec — por eso hay
+    // que comprobar todas las que se usan, no solo la primera.
+    // Sin ellas se piden una por una: más lento, pero funciona igual.
+    foreach (['curl_multi_init', 'curl_multi_exec', 'curl_multi_select',
+              'curl_multi_getcontent', 'curl_multi_add_handle'] as $requerida) {
+        if (!function_exists($requerida)) {
+            $resultados = [];
+            foreach ($endpoints as $clave => $endpoint) {
+                $resultados[$clave] = api_get($endpoint);
+            }
+            return $resultados;
+        }
+    }
+
+    $multi   = curl_multi_init();
+    $handles = [];
+
+    foreach ($endpoints as $clave => $endpoint) {
+        $ch = curl_init(API_BASE . $endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_ENCODING       => '',   // acepta gzip: menos bytes por la red
+        ]);
+        curl_multi_add_handle($multi, $ch);
+        $handles[$clave] = $ch;
+    }
+
+    do {
+        $estado = curl_multi_exec($multi, $pendientes);
+        if ($pendientes) curl_multi_select($multi, 1.0);
+    } while ($pendientes && $estado === CURLM_OK);
+
+    $resultados = [];
+    foreach ($handles as $clave => $ch) {
+        $json = curl_multi_getcontent($ch);
+        $resultados[$clave] = $json === false ? [] : (json_decode($json, true) ?? []);
+        curl_multi_remove_handle($multi, $ch);
+        curl_close($ch);
+    }
+    curl_multi_close($multi);
+
+    return $resultados;
 }
 
 function api_post(string $endpoint, array $data): array {

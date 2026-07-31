@@ -17,8 +17,14 @@ requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
 
-// Datos, puntos y reportes vienen todos del API en una sola llamada
-$perfil_api = api_get('/usuarios/' . $id);
+// Perfil, reportes y favoritos se piden en paralelo
+$datos = api_get_multi([
+    'perfil'    => '/usuarios/' . $id,
+    'reportes'  => '/reportes/usuario/' . $id,
+    'favoritos' => '/favoritos/' . $id,
+]);
+
+$perfil_api = $datos['perfil'];
 
 $nombre  = htmlspecialchars($perfil_api['nombre'] ?? '');
 $email   = htmlspecialchars($perfil_api['email'] ?? '');
@@ -28,8 +34,8 @@ $foto    = $perfil_api['foto_perfil'] ?? null;
 
 $puntos_usuario         = $perfil_api['puntos'] ?? 0;
 $total_reportes_usuario = array_sum(array_column($perfil_api['reportes'] ?? [], 'total'));
-$mis_reportes           = api_get('/reportes/usuario/' . $id);
-$total_favoritos        = count(api_get('/favoritos/' . $id));
+$mis_reportes           = $datos['reportes'];
+$total_favoritos        = count($datos['favoritos']);
 
 $nav_base   = '../';
 $nav_active = 'perfil';

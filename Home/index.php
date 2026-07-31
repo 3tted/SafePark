@@ -16,10 +16,16 @@ require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
-$areas_raw    = api_get('/areas');
+$datos = api_get_multi([
+    'areas'    => '/areas',
+    'usuarios' => '/usuarios',
+    'reportes' => '/reportes',
+]);
+
+$areas_raw      = $datos['areas'];
 $total_areas    = count($areas_raw);
-$total_usuarios = count(api_get('/usuarios'));
-$total_reportes = count(api_get('/reportes'));
+$total_usuarios = count($datos['usuarios']);
+$total_reportes = count($datos['reportes']);
 
 $areas_home = array_values(array_map(fn($a) => [
     'nombre'  => $a['nombre'],
