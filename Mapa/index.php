@@ -15,27 +15,24 @@
 <?php
 require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
-$es_admin = es_admin($conn, $_SESSION['id_usuario']);
+$es_admin  = es_admin($conn, $_SESSION['id_usuario']);
+$areas_raw = api_get('/areas');
 
-// Áreas con coordenadas para el mapa
-$result = $conn->query("SELECT id_area, nombre, colonia, tipo, lat, lng, foto, id_usuario FROM AREA WHERE lat IS NOT NULL AND lng IS NOT NULL");
-$areas_db = [];
-while ($row = $result->fetch_assoc()) {
-    $areas_db[] = [
-        'id'         => (int)$row['id_area'],
-        'nombre'     => $row['nombre'],
-        'colonia'    => $row['colonia'] ?? '',
-        'tipo'       => $row['tipo'] ?? 'parque',
-        'lat'        => (float)$row['lat'],
-        'lng'        => (float)$row['lng'],
-        'foto'       => $row['foto'] ? '../Assets/fotos/' . $row['foto'] : null,
-        'id_usuario' => (int)$row['id_usuario'],
-        'puede_editar' => ($es_admin || (int)$row['id_usuario'] === (int)$_SESSION['id_usuario']),
-        'score'      => 70 // valor inicial, se calcula con reportes despues
-    ];
-}
+$areas_db = array_values(array_map(fn($a) => [
+    'id'          => $a['id'],
+    'nombre'      => $a['nombre'],
+    'colonia'     => $a['colonia'],
+    'tipo'        => $a['tipo'],
+    'lat'         => (float)$a['lat'],
+    'lng'         => (float)$a['lng'],
+    'foto'        => $a['foto'] ? '../Assets/fotos/' . $a['foto'] : null,
+    'id_usuario'  => 0,
+    'puede_editar'=> $es_admin,
+    'score'       => $a['score']
+], array_filter($areas_raw, fn($a) => $a['lat'] && $a['lng'])));
 
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';
@@ -91,12 +88,12 @@ require_once '../includes/navbar.php';
 
                 <div class="form-group">
                     <label class="modal-label">Nombre del área</label>
-                    <input class="modal-input" type="text" name="nombre" placeholder="Ej. Parque Las Flores..." required>
+                    <input class="modal-input" type="text" name="nombre" placeholder="Ej. Parque Las Flores..." autocomplete="off" required>
                 </div>
 
                 <div class="form-group">
                     <label class="modal-label">Colonia</label>
-                    <input class="modal-input" type="text" name="colonia" placeholder="Ej. Col. Centro..." required>
+                    <input class="modal-input" type="text" name="colonia" placeholder="Ej. Col. Centro..." autocomplete="off" required>
                 </div>
 
                 <div class="form-group">
@@ -110,7 +107,11 @@ require_once '../includes/navbar.php';
 
                 <div class="form-group">
                     <label class="modal-label">Foto (opcional)</label>
-                    <input class="modal-input" type="file" name="foto" accept="image/*">
+                    <div class="foto-upload-area" id="drop-agregar" onclick="document.getElementById('input-foto-agregar').click()">
+                        <div id="placeholder-agregar">📷 Adjuntar foto · JPG, PNG o WEBP · Máx. 3MB</div>
+                        <img id="preview-agregar" src="" alt="Preview" style="display:none;max-width:100%;max-height:180px;border-radius:8px;">
+                    </div>
+                    <input type="file" id="input-foto-agregar" name="foto" accept="image/*" style="display:none" onchange="previewFotoMapa(this,'placeholder-agregar','preview-agregar')">
                 </div>
 
                 <div class="modal-btns">

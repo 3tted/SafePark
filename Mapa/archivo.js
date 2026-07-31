@@ -1,15 +1,14 @@
-// Áreas vienen de la base de datos (variable AREAS_DB inyectada por PHP)
+// AREAS_DB es inyectada por PHP en Mapa/index.php como JSON
 const areas = typeof AREAS_DB !== 'undefined' ? AREAS_DB : [];
 
-// Inicializar mapa centrado en Ciudad Juárez
 const map = L.map('map').setView([31.6900, -106.4500], 12);
 
-// Capa de OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
     maxZoom: 19
 }).addTo(map);
 
+// Semáforo de seguridad: verde ≥70, amarillo ≥40, rojo <40
 function colorScore(score) {
     if (score >= 70) return '#40916C';
     if (score >= 40) return '#F4A261';
@@ -36,6 +35,7 @@ areas.forEach(area => {
         ? `<img src="${area.foto}" alt="${area.nombre}" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;">`
         : '';
 
+    // puede_editar lo resuelve PHP: true si es admin o si el usuario creó el área
     const editarBtn = area.puede_editar
         ? `<button onclick="abrirEditarArea(${area.id})" style="margin-top:8px;width:100%;padding:6px;background:var(--g2,#2D6A4F);color:white;border:none;border-radius:6px;font-family:Nunito,sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;">✏️ Editar área</button>`
         : '';
@@ -149,6 +149,12 @@ function abrirEditarArea(id) {
     document.getElementById('edit-lat').value = area.lat;
     document.getElementById('edit-lng').value = area.lng;
 
+    // Resetear preview de foto al abrir el modal de editar
+    document.getElementById('placeholder-editar').style.display = 'block';
+    const prevEdit = document.getElementById('preview-editar');
+    prevEdit.src = ''; prevEdit.style.display = 'none';
+    document.getElementById('input-foto-editar').value = '';
+
     map.closePopup();
     document.getElementById('modal-editar-area').style.display = 'flex';
 }
@@ -180,4 +186,31 @@ map.on('click', (e) => {
     document.getElementById('map').style.cursor = '';
 });
 
+function previewFotoMapa(input, placeholderId, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById(placeholderId).style.display = 'none';
+            const img = document.getElementById(previewId);
+            img.src = e.target.result;
+            img.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 renderLista(marcadores);
+
+// Si viene de Explorar con ?area=id, centra el mapa y abre el popup de esa área
+// setTimeout de 300ms para que Leaflet termine de renderizar los tiles antes de hacer setView
+const params = new URLSearchParams(window.location.search);
+const areaId = parseInt(params.get('area'));
+if (areaId) {
+    const item = marcadores.find(m => m.area.id === areaId);
+    if (item) {
+        setTimeout(() => {
+            map.setView([item.area.lat, item.area.lng], 16);
+            item.marker.openPopup();
+        }, 300);
+    }
+}

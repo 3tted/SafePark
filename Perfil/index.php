@@ -13,20 +13,29 @@
 <?php
 require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
+
+// Datos del usuario desde la DB (auth sigue en PHP)
 $stmt = $conn->prepare("SELECT nombre, email, fecha_registro, foto_perfil FROM USUARIO WHERE id_usuario = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$result = $stmt->get_result();
-$usuario = $result->fetch_assoc();
+$usuario = $stmt->get_result()->fetch_assoc();
 
-$nombre = htmlspecialchars($usuario['nombre']);
-$email  = htmlspecialchars($usuario['email']);
-$fecha  = date('d/m/Y', strtotime($usuario['fecha_registro']));
+$nombre  = htmlspecialchars($usuario['nombre']);
+$email   = htmlspecialchars($usuario['email']);
+$fecha   = date('d/m/Y', strtotime($usuario['fecha_registro']));
 $inicial = strtoupper(mb_substr($nombre, 0, 1));
-$foto   = $usuario['foto_perfil'] ?? null;
+$foto    = $usuario['foto_perfil'] ?? null;
+
+// Puntos y reportes desde la API
+$perfil_api = api_get('/usuarios/' . $id);
+$puntos_usuario         = $perfil_api['puntos'] ?? 0;
+$total_reportes_usuario = array_sum(array_column($perfil_api['reportes'] ?? [], 'total'));
+$mis_reportes           = api_get('/reportes/usuario/' . $id);
+$total_favoritos        = count(api_get('/favoritos/' . $id));
 
 $nav_base   = '../';
 $nav_active = 'perfil';
@@ -52,9 +61,9 @@ require_once '../includes/navbar.php';
             </div>
         </div>
         <div class="perfil-stats">
-            <div class="pstat"><div class="pstat-n">0</div><div class="pstat-l">Reportes</div></div>
-            <div class="pstat"><div class="pstat-n">0</div><div class="pstat-l">Favoritos</div></div>
-            <div class="pstat"><div class="pstat-n">0</div><div class="pstat-l">Puntos</div></div>
+            <div class="pstat"><div class="pstat-n"><?= $total_reportes_usuario ?></div><div class="pstat-l">Reportes</div></div>
+            <div class="pstat"><div class="pstat-n"><?= $total_favoritos ?></div><div class="pstat-l">Favoritos</div></div>
+            <div class="pstat"><div class="pstat-n"><?= $puntos_usuario ?></div><div class="pstat-l">Puntos</div></div>
         </div>
     </div>
 
@@ -134,21 +143,38 @@ require_once '../includes/navbar.php';
 
             <!-- Tab: Mis reportes -->
             <div class="ptab-panel" id="tab-reportes">
+                <?php if (empty($mis_reportes)): ?>
                 <div class="pempty">
                     <div class="pempty-icon">📋</div>
                     <div class="pempty-text">Aún no has enviado reportes</div>
                     <div class="pempty-sub">Ayuda a la comunidad reportando áreas verdes</div>
                     <a class="btn-ir" href="../Reportar/index.php">Crear reporte</a>
                 </div>
+                <?php else: ?>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <?php foreach ($mis_reportes as $r):
+                        $tipo_label = ['incidente'=>'🚨 Incidente','condicion'=>'⚠️ Condición','sugerencia'=>'💡 Sugerencia'][$r['tipo']] ?? $r['tipo'];
+                        $fecha_r = date('d/m/Y', strtotime($r['fecha']));
+                    ?>
+                    <div style="background:#f9fafb;border-radius:12px;padding:14px 16px;border:1px solid #e5e7eb;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <span style="font-size:0.8rem;font-weight:700;color:#1B4332;"><?= $tipo_label ?></span>
+                            <span style="font-size:0.75rem;color:#9ca3af;"><?= $fecha_r ?></span>
+                        </div>
+                        <div style="font-size:0.85rem;color:#374151;margin-bottom:4px;"><?= htmlspecialchars($r['descripcion']) ?></div>
+                        <?php if ($r['area']): ?>
+                        <div style="font-size:0.75rem;color:#6b7280;">📍 <?= htmlspecialchars($r['area']) ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Tab: Favoritos -->
             <div class="ptab-panel" id="tab-favoritos" style="display:none;">
-                <div class="pempty">
-                    <div class="pempty-icon">❤️</div>
-                    <div class="pempty-text">Aún no tienes favoritos</div>
-                    <div class="pempty-sub">Explora áreas verdes y guárdalas aquí</div>
-                    <a class="btn-ir" href="../Explorar/index.php">Explorar áreas</a>
+                <div id="favoritos-contenido">
+                    <div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">Cargando favoritos...</div>
                 </div>
             </div>
 
@@ -158,7 +184,7 @@ require_once '../includes/navbar.php';
                     <div class="pempty-icon">📰</div>
                     <div class="pempty-text">Sin actividad reciente</div>
                     <div class="pempty-sub">Tu historial de acciones aparecerá aquí</div>
-                    <a class="btn-ir" href="../Comunidad/index.html">Ver comunidad</a>
+                    <a class="btn-ir" href="../Comunidad/index.php">Ver comunidad</a>
                 </div>
             </div>
 
@@ -167,6 +193,55 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Mi Perfil · Ciudad Juárez</div>
 
+    <script>const ID_USUARIO = <?= $id ?>;</script>
     <script src="perfil.js"></script>
+    <script>
+    let favsCargados = false;
+
+    const _tabOriginal = window.cambiarTab;
+    window.cambiarTab = function(el, tab) {
+        _tabOriginal(el, tab);
+        if (tab === 'favoritos' && !favsCargados) cargarFavoritos();
+    };
+
+    function cargarFavoritos() {
+        favsCargados = true;
+        const el = document.getElementById('favoritos-contenido');
+
+        fetch('http://localhost:3000/api/favoritos/' + ID_USUARIO)
+        .then(r => r.json())
+        .then(ids => {
+            if (!ids.length) {
+                el.innerHTML = `<div class="pempty">
+                    <div class="pempty-icon">❤️</div>
+                    <div class="pempty-text">Aún no tienes favoritos</div>
+                    <div class="pempty-sub">Explora áreas verdes y guárdalas aquí</div>
+                    <a class="btn-ir" href="../Explorar/index.php">Explorar áreas</a>
+                </div>`;
+                return;
+            }
+            return fetch('http://localhost:3000/api/areas')
+            .then(r => r.json())
+            .then(areas => {
+                const favs = areas.filter(a => ids.includes(a.id));
+                const iconos = { parque:'🌳', deportivo:'⚽', plaza:'🏛️' };
+                el.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">` +
+                    favs.map(a => {
+                        const sem = a.score >= 70 ? '#d8f3dc' : (a.score >= 40 ? '#fef3c7' : '#fee2e2');
+                        const semTxt = a.score >= 70 ? '● Seguro' : (a.score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
+                        return `<div style="background:#f9fafb;border-radius:12px;padding:14px 16px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="window.location.href='../Explorar/index.php'">
+                            <div style="font-size:28px;">${iconos[a.tipo]||'🌿'}</div>
+                            <div style="flex:1">
+                                <div style="font-weight:800;font-size:14px;color:#1a1a1a;">${a.nombre}</div>
+                                <div style="font-size:12px;color:#6b7280;">📍 ${a.colonia}</div>
+                            </div>
+                            <div style="background:${sem};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">${semTxt} · ${a.score}/100</div>
+                        </div>`;
+                    }).join('') + `</div>`;
+            });
+        })
+        .catch(() => { el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;">Error al cargar favoritos.</div>'; });
+    }
+    </script>
 </body>
 </html>

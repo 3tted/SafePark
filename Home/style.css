@@ -2,7 +2,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hero {
@@ -15,6 +15,9 @@
   gap: 20px;
   text-align: center;
   flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
 .hero-content {
@@ -104,6 +107,11 @@
     background: var(--g1);
 }
 
+.search-bar.abierto {
+    border-color: var(--g3);
+    border-radius: 16px 16px 0 0;
+}
+
 .hero-stats {
   display: flex;
   justify-content: center; 
@@ -128,6 +136,8 @@
   flex: 1;
   min-height: 0;
   background: white;
+  position: relative;
+  z-index: 1;
 }
 
 #home-map {
@@ -176,11 +186,13 @@
 /* ===== Autocompletado búsqueda Home ===== */
 .sugerencias-box-home {
     position: absolute;
-    top: 52px;
+    top: calc(100% - 2px);
     left: 0;
     right: 0;
     background: white;
-    border-radius: 12px;
+    border-radius: 0 0 16px 16px;
+    border: 2px solid var(--g3);
+    border-top: none;
     box-shadow: 0 6px 20px rgba(0,0,0,0.18);
     z-index: 50;
     max-height: 280px;

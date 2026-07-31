@@ -12,15 +12,12 @@
 
 <?php
 session_start();
-require_once '../database/conexion.php';
+require_once '../includes/api.php';
 
 if (!isset($_SESSION['id_usuario'])) {
     header('Location: ../Login/index.php');
     exit;
 }
-
-// Áreas con coordenadas (las mismas que se ven en el Mapa)
-$result = $conn->query("SELECT id_area, nombre, colonia, tipo, foto FROM AREA WHERE lat IS NOT NULL AND lng IS NOT NULL ORDER BY id_area DESC");
 
 $emoji_tipo = ['parque' => '🌳', 'deportivo' => '⚽', 'plaza' => '🏛️'];
 $label_tipo = ['parque' => 'Parque', 'deportivo' => 'Deportivo', 'plaza' => 'Plaza'];
@@ -30,10 +27,15 @@ $gradientes = [
     'plaza'     => 'linear-gradient(135deg, #fef3c7, #f4a261)',
 ];
 
-$areas = [];
-while ($row = $result->fetch_assoc()) {
-    $areas[] = $row;
-}
+$areas_raw = api_get('/areas');
+$areas = array_map(fn($a) => [
+    'id_area' => $a['id'],
+    'nombre'  => $a['nombre'],
+    'colonia' => $a['colonia'],
+    'tipo'    => $a['tipo'],
+    'foto'    => $a['foto'],
+    'score'   => $a['score']
+], $areas_raw);
 
 $nav_base   = '../';
 $nav_active = 'explorar';
@@ -51,8 +53,9 @@ require_once '../includes/navbar.php';
             </div>
             <div class="sugerencias-box-explorar" id="sugerencias-box-explorar" style="display:none;"></div>
             <div id="sugerencias-box-nominatim-explorar"
-            style="display:none; position:absolute; top:52px; left:0; right:0;
-            background:white; border-radius:12px;
+            style="display:none; position:absolute; top:calc(100% - 2px); left:0; right:0;
+            background:white; border-radius:0 0 16px 16px;
+            border:2px solid var(--g3); border-top:none;
             box-shadow:0 6px 20px rgba(0,0,0,0.18); z-index:60;
             max-height:280px; overflow-y:auto; text-align:left;">
 </div>
@@ -66,6 +69,12 @@ require_once '../includes/navbar.php';
         <div class="chip" onclick="toggleChipGrupo(this,'tipo')" data-valor="parque">🌳 Parques</div>
         <div class="chip" onclick="toggleChipGrupo(this,'tipo')" data-valor="deportivo">⚽ Deportivo</div>
         <div class="chip" onclick="toggleChipGrupo(this,'tipo')" data-valor="plaza">🏛️ Plaza</div>
+        <div class="filtro-sep"></div>
+        <span class="filtro-label">Seguridad:</span>
+        <div class="chip active" onclick="toggleChipGrupo(this,'seguridad')" data-valor="todos">Todas</div>
+        <div class="chip chip-seguro" onclick="toggleChipGrupo(this,'seguridad')" data-valor="seguro">🟢 Seguro</div>
+        <div class="chip chip-warn" onclick="toggleChipGrupo(this,'seguridad')" data-valor="precaucion">🟡 Precaución</div>
+        <div class="chip chip-risk" onclick="toggleChipGrupo(this,'seguridad')" data-valor="riesgo">🔴 Riesgo</div>
     </div>
 
     <!-- Cuerpo principal -->
@@ -84,8 +93,19 @@ require_once '../includes/navbar.php';
                 $label = $label_tipo[$tipo] ?? 'Área';
                 $gradiente = $gradientes[$tipo] ?? $gradientes['parque'];
                 $imagen = $area['foto'] ? "background-image:url('../Assets/fotos/{$area['foto']}');background-size:cover;background-position:center;" : "background:{$gradiente};";
+                $score = $area['score'];
+                $sem_cls = $score >= 70 ? 'sem-safe' : ($score >= 40 ? 'sem-warn' : 'sem-risk');
+                $sem_lbl = $score >= 70 ? '● Seguro' : ($score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
+                $foto_modal = $area['foto'] ? '../Assets/fotos/' . htmlspecialchars($area['foto']) : '';
             ?>
-                <div class="ecard" data-tipo="<?= $tipo ?>" onclick="window.location.href='../Mapa/index.php'">
+                <div class="ecard"
+                    data-tipo="<?= $tipo ?>"
+                    data-id="<?= $area['id_area'] ?>"
+                    data-nombre="<?= htmlspecialchars($area['nombre'], ENT_QUOTES) ?>"
+                    data-colonia="<?= htmlspecialchars($area['colonia'], ENT_QUOTES) ?>"
+                    data-score="<?= $score ?>"
+                    data-foto="<?= htmlspecialchars($foto_modal, ENT_QUOTES) ?>"
+                    onclick="abrirModalArea(this)">
                     <div class="ecard-img" style="<?= $imagen ?>"><?= $area['foto'] ? '' : $emoji ?></div>
                     <div class="ecard-body">
                         <div class="ecard-name"><?= htmlspecialchars($area['nombre']) ?></div>
@@ -94,7 +114,8 @@ require_once '../includes/navbar.php';
                             <span class="etag"><?= $emoji ?> <?= $label ?></span>
                         </div>
                         <div class="ecard-foot">
-                            <div class="semaforo sem-safe">● Ver en el mapa</div>
+                            <div class="semaforo <?= $sem_cls ?>"><?= $sem_lbl ?></div>
+                            <button class="btn-fav" data-id="<?= $area['id_area'] ?>" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
                         </div>
                     </div>
                 </div>
@@ -112,6 +133,33 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Explorar áreas · Ciudad Juárez</div>
 
+    <!-- Modal detalle de área -->
+    <div class="modal-overlay" id="modal-area" style="display:none;" onclick="if(event.target===this) cerrarModalArea()">
+        <div class="modal-area-card">
+            <button class="modal-area-close" onclick="cerrarModalArea()">✕</button>
+
+            <div class="modal-area-foto" id="modal-foto"></div>
+
+            <div class="modal-area-body">
+                <div class="modal-area-head">
+                    <div>
+                        <div class="modal-area-nombre" id="modal-nombre"></div>
+                        <div class="modal-area-meta" id="modal-meta"></div>
+                    </div>
+                    <div class="semaforo" id="modal-semaforo"></div>
+                </div>
+
+                <div class="modal-area-sec">Reportes recientes</div>
+                <div id="modal-reportes">
+                    <div class="modal-loading">Cargando reportes...</div>
+                </div>
+
+                <a class="modal-area-mapa-btn" id="modal-mapa-link" href="#">🗺️ Ver en el mapa</a>
+            </div>
+        </div>
+    </div>
+
+    <script>const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;</script>
     <script src="explorar.js"></script>
     <script>
 let nominatimTimerExplorar = null;
@@ -150,6 +198,7 @@ document.getElementById('busqueda').addEventListener('input', function() {
                 </div>
             `).join('');
             box.style.display = 'block';
+            document.querySelector('.search-bar-full').classList.add('abierto');
         })
         .catch(() => { box.style.display = 'none'; });
     }, 400);
@@ -158,12 +207,14 @@ document.getElementById('busqueda').addEventListener('input', function() {
 function seleccionarNominatimExplorar(nombre) {
     document.getElementById('busqueda').value = nombre;
     document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
+    document.querySelector('.search-bar-full').classList.remove('abierto');
     filtrarAreas();
 }
 
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.search-bar-full') && !e.target.closest('#sugerencias-box-nominatim-explorar')) {
         document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
+        document.querySelector('.search-bar-full').classList.remove('abierto');
     }
 });
 </script>

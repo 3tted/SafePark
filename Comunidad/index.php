@@ -13,59 +13,45 @@
 <?php
 require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
-// Stats reales
-$total_usuarios = $conn->query("SELECT COUNT(*) FROM USUARIO")->fetch_row()[0];
-$total_reportes = $conn->query("SELECT COUNT(*) FROM REPORTE")->fetch_row()[0];
-$total_eventos  = $conn->query("SELECT COUNT(*) FROM EVENTO")->fetch_row()[0];
+$reportes_api = api_get('/reportes');
+$eventos_api  = api_get('/eventos');
+$usuarios_api = api_get('/usuarios');
 
-// Actividad reciente: reportes y eventos mezclados por fecha
-$actividad_db = $conn->query("
-    SELECT 'reporte' AS tipo_actividad, R.tipo AS subtipo, R.descripcion AS detalle, R.fecha, U.nombre AS usuario, A.nombre AS area
-    FROM REPORTE R
-    JOIN USUARIO U ON R.id_usuario = U.id_usuario
-    JOIN AREA A ON R.id_area = A.id_area
-    UNION ALL
-    SELECT 'evento' AS tipo_actividad, NULL AS subtipo, E.nombre AS detalle,
-           CONCAT(E.fecha, ' ', E.hora) AS fecha, U.nombre AS usuario, A.nombre AS area
-    FROM EVENTO E
-    JOIN USUARIO U ON E.id_usuario = U.id_usuario
-    JOIN AREA A ON E.id_area = A.id_area
-    ORDER BY fecha DESC
-    LIMIT 10
-");
+$total_usuarios = count($usuarios_api);
+$total_reportes = count($reportes_api);
+$total_eventos  = count($eventos_api);
 
-// Eventos de la DB
-$eventos_db = $conn->query("
-    SELECT E.id_evento, E.nombre, E.fecha, E.hora, U.nombre AS usuario, A.nombre AS area
-    FROM EVENTO E
-    JOIN USUARIO U ON E.id_usuario = U.id_usuario
-    JOIN AREA A ON E.id_area = A.id_area
-    ORDER BY E.fecha ASC
-");
+// Mezcla reportes y eventos ordenados por fecha para el feed
+$actividad = [];
+foreach ($reportes_api as $r) {
+    $actividad[] = ['tipo_actividad'=>'reporte','id_item'=>$r['id_reporte'],'id_evento'=>null,
+        'subtipo'=>$r['tipo'],'detalle'=>$r['descripcion'],'fecha'=>$r['fecha'],
+        'usuario'=>$r['usuario'],'area'=>$r['area'],'foto'=>$r['foto']??null];
+}
+foreach ($eventos_api as $e) {
+    $actividad[] = ['tipo_actividad'=>'evento','id_item'=>null,'id_evento'=>$e['id_evento'],
+        'subtipo'=>null,'detalle'=>$e['nombre'],'fecha'=>$e['fecha'].' '.$e['hora'],
+        'usuario'=>$e['usuario'],'area'=>$e['area']];
+}
+usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
+$actividad = array_slice($actividad, 0, 10);
 
-// Áreas para el modal
-$areas_modal = $conn->query("SELECT id_area, nombre FROM AREA ORDER BY nombre");
+// Reacciones agrupadas
+$reacciones_db = [];
+$res_r = $conn->query("SELECT id_reporte, id_evento, emoji, COUNT(*) AS total FROM REACCION GROUP BY id_reporte, id_evento, emoji");
+while ($row = $res_r->fetch_assoc()) {
+    $key = $row['id_reporte'] ? 'r_'.$row['id_reporte'] : 'e_'.$row['id_evento'];
+    $reacciones_db[$key][$row['emoji']] = (int)$row['total'];
+}
 
-// Eventos para sidebar (separado para no consumir el mismo resultado)
-$eventos_sidebar = $conn->query("
-    SELECT E.nombre, E.fecha, E.hora, A.nombre AS area
-    FROM EVENTO E
-    JOIN AREA A ON E.id_area = A.id_area
-    ORDER BY E.fecha ASC
-    LIMIT 3
-");
+$eventos_sidebar = array_slice($eventos_api, 0, 3);
+$top_contribuidores = array_slice($usuarios_api, 0, 4);
 
-// Top contribuidores
-$top_contribuidores = $conn->query("
-    SELECT U.nombre, COUNT(R.id_reporte) AS total
-    FROM USUARIO U
-    LEFT JOIN REPORTE R ON U.id_usuario = R.id_usuario
-    GROUP BY U.id_usuario, U.nombre
-    ORDER BY total DESC
-    LIMIT 4
-");
+// Áreas para el modal (solo necesitamos id y nombre)
+$areas_modal_arr = api_get('/areas');
 
 $labels_tipo = ['incidente' => 'reportó un incidente', 'condicion' => 'reportó la condición', 'sugerencia' => 'hizo una sugerencia'];
 
@@ -112,7 +98,7 @@ require_once '../includes/navbar.php';
                 <?php
                 $colores = ['#d8f3dc', '#fef3c7', '#dbeafe', '#ede9fe', '#fee2e2', '#e9f5ee'];
                 $i = 0;
-                while ($r = $actividad_db->fetch_assoc()):
+                foreach ($actividad as $r):
                     $color   = $colores[$i % count($colores)];
                     $inicial = strtoupper(mb_substr($r['usuario'], 0, 1));
                     $fecha   = date('d/m/Y H:i', strtotime($r['fecha']));
@@ -128,60 +114,47 @@ require_once '../includes/navbar.php';
                         $emoji  = '📅';
                     endif;
                 ?>
+                <?php
+                    $id_reporte_feed = ($r['tipo_actividad'] === 'reporte') ? (int)$r['id_item'] : null;
+                    $id_evento_feed  = ($r['tipo_actividad'] === 'evento')  ? (int)$r['id_evento'] : null;
+                    $key_feed = $id_reporte_feed ? 'r_'.$id_reporte_feed : 'e_'.$id_evento_feed;
+                    $reacciones_item = $reacciones_db[$key_feed] ?? [];
+                    $data_attr = 'data-id-reporte="'.($id_reporte_feed ?? '').'" data-id-evento="'.($id_evento_feed ?? '').'"';
+                ?>
                 <div class="feed-item">
                     <div class="feed-avatar" style="background:<?= $color ?>;color:var(--g1);font-weight:900;display:flex;align-items:center;justify-content:center;font-size:1rem;"><?= $inicial ?></div>
                     <div class="feed-content">
                         <div class="feed-user"><?= htmlspecialchars($r['usuario']) ?></div>
                         <div class="feed-action"><?= $emoji ?> <?= $accion ?> en <span class="feed-area"><?= htmlspecialchars($r['area']) ?></span> — "<?= htmlspecialchars($desc) ?><?= ($r['tipo_actividad']==='reporte' && strlen($r['detalle']) > 80) ? '...' : '' ?>"</div>
+                        <?php if (!empty($r['foto'])): ?>
+                            <img src="../Assets/fotos/<?= htmlspecialchars($r['foto']) ?>" alt="Foto del reporte" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin:8px 0;">
+                        <?php endif; ?>
                         <div class="feed-time"><?= $fecha ?></div>
-                        <div class="feed-reactions">
-                            <button class="reaction-btn" onclick="reaccionar(this)">👍 0</button>
-                            <button class="reaction-btn">💬 0</button>
+                        <div class="feed-reactions" <?= $data_attr ?>>
+                            <?php foreach ($reacciones_item as $em => $total): ?>
+                                <button class="reaction-btn" onclick="reaccionar(this,'<?= htmlspecialchars($em) ?>')" <?= $data_attr ?>><?= $em ?> <?= $total ?></button>
+                            <?php endforeach; ?>
+                            <button class="reaction-add" onclick="togglePicker(this)" <?= $data_attr ?>>+</button>
+                            <button class="reaction-btn comment-toggle-btn" onclick="toggleComentarios(this)" <?= $data_attr ?>>💬 Comentarios</button>
+                        </div>
+                        <div class="comentarios-section" style="display:none;" <?= $data_attr ?>>
+                            <div class="comentarios-lista"></div>
+                            <div class="comentario-form">
+                                <input type="text" class="comentario-input" placeholder="Escribe un comentario...">
+                                <button class="comentario-send" onclick="enviarComentario(this)">Enviar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
 
-                <!-- 3 items hardcodeados -->
-                <div class="feed-item">
-                    <div class="feed-avatar" style="background:var(--g4);"></div>
-                    <div class="feed-content">
-                        <div class="feed-user">maria_cj</div>
-                        <div class="feed-action">organizó un evento en <span class="feed-area">Parque Central</span> — "Limpieza comunitaria sábado 7am"</div>
-                        <div class="feed-time">Hace 1 hora</div>
-                        <div class="feed-reactions">
-                            <button class="reaction-btn" onclick="reaccionar(this)">❤️ 38</button>
-                            <button class="reaction-btn">💬 11</button>
-                            <button class="reaction-btn reaction-active">✅ Asistiré</button>
-                        </div>
-                    </div>
+                <?php if ($i === 0): ?>
+                <div style="text-align:center;padding:40px;color:var(--muted);">
+                    <div style="font-size:2rem;">📰</div>
+                    <div style="font-weight:700;margin-top:8px;">No hay actividad reciente</div>
+                    <div style="font-size:0.85rem;margin-top:4px;">¡Sé el primero en reportar o crear un evento!</div>
                 </div>
-
-                <div class="feed-item">
-                    <div class="feed-avatar" style="background:#fef3c7;"></div>
-                    <div class="feed-content">
-                        <div class="feed-user">roberto_dev</div>
-                        <div class="feed-action">marcó como favorito <span class="feed-area">Área Deportiva Norte</span> y dejó una reseña ★★★★★</div>
-                        <div class="feed-time">Hace 2 horas</div>
-                        <div class="feed-reactions">
-                            <button class="reaction-btn" onclick="reaccionar(this)">👍 7</button>
-                            <button class="reaction-btn">💬 1</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="feed-item">
-                    <div class="feed-avatar" style="background:#e9f5ee;"></div>
-                    <div class="feed-content">
-                        <div class="feed-user">ivan_tech</div>
-                        <div class="feed-action">desbloqueó el logro <strong>🏅 Guardián del Parque</strong> — 10 reportes aprobados consecutivos</div>
-                        <div class="feed-time">Hace 5 horas</div>
-                        <div class="feed-reactions">
-                            <button class="reaction-btn" onclick="reaccionar(this)">🎉 52</button>
-                            <button class="reaction-btn">💬 8</button>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
 
             </div>
 
@@ -197,28 +170,47 @@ require_once '../includes/navbar.php';
                     <div class="msg-err-feed">❌ Error al crear el evento, intenta de nuevo.</div>
                 <?php endif; ?>
 
-                <?php if ($eventos_db->num_rows === 0): ?>
+                <?php if (count($eventos_api) === 0): ?>
                     <div style="text-align:center;padding:40px;color:var(--muted);">
                         <div style="font-size:2rem;">📅</div>
                         <div style="font-weight:700;margin-top:8px;">No hay eventos próximos</div>
                         <div style="font-size:0.85rem;margin-top:4px;">¡Sé el primero en crear uno!</div>
                     </div>
                 <?php else:
-                    while ($ev = $eventos_db->fetch_assoc()):
+                    foreach ($eventos_api as $ev):
                         $dia = date('d', strtotime($ev['fecha']));
                         $mes = strtoupper(date('M', strtotime($ev['fecha'])));
                         $hora = date('h:i A', strtotime($ev['hora']));
                 ?>
+                    <?php
+                        $key_ev = 'e_'.$ev['id_evento'];
+                        $reacciones_ev = $reacciones_db[$key_ev] ?? [];
+                        $data_ev = 'data-id-reporte="" data-id-evento="'.$ev['id_evento'].'"';
+                    ?>
                     <div class="evento-card-big">
                         <div class="evento-fecha-big"><div class="evento-num"><?= $dia ?></div><div class="evento-mes"><?= $mes ?></div></div>
                         <div class="evento-info-big">
                             <div class="evento-nombre-big"><?= htmlspecialchars($ev['nombre']) ?></div>
                             <div class="evento-meta-big">📍 <?= htmlspecialchars($ev['area']) ?> · ⏰ <?= $hora ?></div>
                             <div class="evento-asistentes">👤 Organizado por <?= htmlspecialchars($ev['usuario']) ?></div>
+                            <div class="feed-reactions" <?= $data_ev ?>>
+                                <?php foreach ($reacciones_ev as $em => $total): ?>
+                                    <button class="reaction-btn" onclick="reaccionar(this,'<?= htmlspecialchars($em) ?>')" <?= $data_ev ?>><?= $em ?> <?= $total ?></button>
+                                <?php endforeach; ?>
+                                <button class="reaction-add" onclick="togglePicker(this)" <?= $data_ev ?>>+</button>
+                                <button class="reaction-btn comment-toggle-btn" onclick="toggleComentarios(this)" <?= $data_ev ?>>💬 Comentarios</button>
+                            </div>
+                            <div class="comentarios-section" style="display:none;" <?= $data_ev ?>>
+                                <div class="comentarios-lista"></div>
+                                <div class="comentario-form">
+                                    <input type="text" class="comentario-input" placeholder="Escribe un comentario...">
+                                    <button class="comentario-send" onclick="enviarComentario(this)">Enviar</button>
+                                </div>
+                            </div>
                         </div>
                         <button class="btn-asistir" onclick="this.textContent='✅ Confirmado'; this.classList.add('confirmado')">Asistir</button>
                     </div>
-                <?php endwhile; endif; ?>
+                <?php endforeach; endif; ?>
             </div>
 
             <!-- Tab: Logros -->
@@ -259,10 +251,10 @@ require_once '../includes/navbar.php';
         <div class="comunidad-side">
 
             <div class="side-section-title">📅 Próximos eventos</div>
-            <?php if ($eventos_sidebar->num_rows === 0): ?>
+            <?php if (empty($eventos_sidebar)): ?>
                 <div style="color:var(--muted);font-size:0.82rem;padding:8px 0;">Sin eventos próximos.</div>
             <?php else:
-                while ($es = $eventos_sidebar->fetch_assoc()):
+                foreach ($eventos_sidebar as $es):
                     $dia  = date('d', strtotime($es['fecha']));
                     $mes  = strtoupper(date('M', strtotime($es['fecha'])));
                     $hora = date('h:i A', strtotime($es['hora']));
@@ -274,14 +266,14 @@ require_once '../includes/navbar.php';
                         <div class="evento-meta"><?= htmlspecialchars($es['area']) ?> · <?= $hora ?></div>
                     </div>
                 </div>
-            <?php endwhile; endif; ?>
+            <?php endforeach; endif; ?>
 
             <div class="side-section-title" style="margin-top:24px;">🏆 Top contribuidores</div>
             <?php
             $medallas = ['🥇','🥈','🥉'];
             $colores_rank = ['#fef3c7', 'var(--g4)', 'var(--g3)', '#e9f5ee'];
             $pos = 0;
-            while ($top = $top_contribuidores->fetch_assoc()):
+            foreach ($top_contribuidores as $top):
                 $medalla = $medallas[$pos] ?? ($pos + 1);
                 $color   = $colores_rank[$pos] ?? '#f3f4f6';
                 $inicial = strtoupper(mb_substr($top['nombre'], 0, 1));
@@ -291,25 +283,25 @@ require_once '../includes/navbar.php';
                 <div class="ranking-num"><?= $medalla ?></div>
                 <div class="ranking-avatar" style="background:<?= $color ?>;color:var(--g1);font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;"><?= $inicial ?></div>
                 <div class="ranking-name"><?= htmlspecialchars($top['nombre']) ?></div>
-                <div class="ranking-count"><?= $top['total'] ?> reportes</div>
+                <div class="ranking-count"><?= $top['total_reportes'] ?> reportes</div>
             </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
 
-            <div class="side-section-title" style="margin-top:24px;">🏅 Logros recientes</div>
+            <div class="side-section-title" style="margin-top:24px;">🏅 Logros disponibles</div>
             <div class="logro-item">
                 <div class="logro-icon">🛡️</div>
                 <div class="logro-info"><div class="logro-nombre">Guardián del Parque</div><div class="logro-desc">10 reportes aprobados</div></div>
                 <div class="logro-pts">+50 pts</div>
             </div>
             <div class="logro-item">
-                <div class="logro-icon">📸</div>
-                <div class="logro-info"><div class="logro-nombre">Fotógrafo Ciudadano</div><div class="logro-desc">Subir 20 fotos</div></div>
-                <div class="logro-pts">+30 pts</div>
-            </div>
-            <div class="logro-item">
                 <div class="logro-icon">🌱</div>
                 <div class="logro-info"><div class="logro-nombre">Primer reporte</div><div class="logro-desc">Enviar tu primer reporte</div></div>
                 <div class="logro-pts">+10 pts</div>
+            </div>
+            <div class="logro-item">
+                <div class="logro-icon">🤝</div>
+                <div class="logro-info"><div class="logro-nombre">Organizador</div><div class="logro-desc">Crea tu primer evento</div></div>
+                <div class="logro-pts">+40 pts</div>
             </div>
 
         </div>
@@ -325,16 +317,16 @@ require_once '../includes/navbar.php';
 
                 <div class="form-group">
                     <label class="modal-label">Nombre del evento</label>
-                    <input class="modal-input" type="text" name="nombre" placeholder="Ej. Caminata matutina..." required>
+                    <input class="modal-input" type="text" name="nombre" placeholder="Ej. Caminata matutina..." autocomplete="off" required>
                 </div>
 
                 <div class="form-group">
                     <label class="modal-label">Área o zona</label>
                     <select class="modal-input" name="id_area" required>
                         <option value="">Selecciona un área...</option>
-                        <?php while ($a = $areas_modal->fetch_assoc()): ?>
-                            <option value="<?= $a['id_area'] ?>"><?= htmlspecialchars($a['nombre']) ?></option>
-                        <?php endwhile; ?>
+                        <?php foreach ($areas_modal_arr as $a): ?>
+                            <option value="<?= $a['id'] ?>"><?= htmlspecialchars($a['nombre']) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -357,6 +349,8 @@ require_once '../includes/navbar.php';
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
+    <script>const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;</script>
     <script src="comunidad.js"></script>
 </body>
 </html>

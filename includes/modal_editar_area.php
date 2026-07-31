@@ -6,12 +6,12 @@
 
             <div class="form-group">
                 <label class="modal-label-admin">Nombre</label>
-                <input class="modal-input-admin" type="text" name="nombre" id="edit-nombre" required>
+                <input class="modal-input-admin" type="text" name="nombre" id="edit-nombre" autocomplete="off" required>
             </div>
 
             <div class="form-group">
                 <label class="modal-label-admin">Colonia</label>
-                <input class="modal-input-admin" type="text" name="colonia" id="edit-colonia" required>
+                <input class="modal-input-admin" type="text" name="colonia" id="edit-colonia" autocomplete="off" required>
             </div>
 
             <div class="form-group">
@@ -31,18 +31,22 @@
                 <div class="modal-row-admin">
                     <div class="form-group" style="flex:1">
                         <label class="modal-label-admin">Latitud</label>
-                        <input class="modal-input-admin" type="text" name="lat" id="edit-lat" required>
+                        <input class="modal-input-admin" type="text" name="lat" id="edit-lat" autocomplete="off" required>
                     </div>
                     <div class="form-group" style="flex:1">
                         <label class="modal-label-admin">Longitud</label>
-                        <input class="modal-input-admin" type="text" name="lng" id="edit-lng" required>
+                        <input class="modal-input-admin" type="text" name="lng" id="edit-lng" autocomplete="off" required>
                     </div>
                 </div>
             <?php endif; ?>
 
             <div class="form-group">
-                <label class="modal-label-admin">Foto (deja en blanco para no cambiar)</label>
-                <input class="modal-input-admin" type="file" name="foto" accept="image/*">
+                <label class="modal-label-admin">Foto (opcional, deja vacío para no cambiar)</label>
+                <div class="foto-upload-area" id="drop-editar" onclick="document.getElementById('input-foto-editar').click()">
+                    <div id="placeholder-editar">📷 Cambiar foto · JPG, PNG o WEBP · Máx. 3MB</div>
+                    <img id="preview-editar" src="" alt="Preview" style="display:none;max-width:100%;max-height:180px;border-radius:8px;">
+                </div>
+                <input type="file" id="input-foto-editar" name="foto" accept="image/*" style="display:none" onchange="previewFotoMapa(this,'placeholder-editar','preview-editar')">
             </div>
 
             <div class="modal-btns-admin">

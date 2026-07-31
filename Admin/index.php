@@ -13,39 +13,18 @@
 <?php
 require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_admin($conn);
 
-// Estadísticas generales
-$total_usuarios = $conn->query("SELECT COUNT(*) FROM USUARIO")->fetch_row()[0];
-$total_reportes = $conn->query("SELECT COUNT(*) FROM REPORTE")->fetch_row()[0];
-$reportes_pendientes = $conn->query("SELECT COUNT(*) FROM REPORTE WHERE estado = 'pendiente'")->fetch_row()[0];
-$total_areas = $conn->query("SELECT COUNT(*) FROM AREA")->fetch_row()[0];
+$stats           = api_get('/areas/stats/resumen');
+$total_usuarios  = $stats['total_usuarios'] ?? 0;
+$total_reportes  = $stats['total_reportes'] ?? 0;
+$reportes_pendientes = $stats['pendientes'] ?? 0;
+$total_areas     = $stats['total_areas'] ?? 0;
 
-// Reportes recientes
-$reportes = $conn->query("
-    SELECT R.id_reporte, R.tipo, R.descripcion, R.estado, R.fecha,
-           U.nombre AS usuario, A.nombre AS area
-    FROM REPORTE R
-    JOIN USUARIO U ON R.id_usuario = U.id_usuario
-    JOIN AREA A ON R.id_area = A.id_area
-    ORDER BY R.fecha DESC
-    LIMIT 20
-");
-
-// Usuarios recientes
-$usuarios = $conn->query("
-    SELECT id_usuario, nombre, email, rol, fecha_registro
-    FROM USUARIO
-    ORDER BY fecha_registro DESC
-    LIMIT 10
-");
-
-// Áreas
-$areas_admin = $conn->query("
-    SELECT id_area, nombre, colonia, tipo, lat, lng
-    FROM AREA
-    ORDER BY id_area DESC
-");
+$reportes    = api_get('/reportes');
+$usuarios    = api_get('/usuarios');
+$areas_admin = api_get('/areas');
 
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';
@@ -115,10 +94,9 @@ require_once '../includes/navbar.php';
                     </tr>
                 </thead>
                 <tbody>
-                <?php if ($reportes->num_rows === 0): ?>
+                <?php if (empty($reportes)): ?>
                     <tr><td colspan="8" class="tabla-vacia">No hay reportes aún.</td></tr>
-                <?php else:
-                    while ($r = $reportes->fetch_assoc()):
+                <?php else: foreach ($reportes as $r):
                         $tag = $tags_estado[$r['estado']] ?? '';
                         $label = $labels_estado[$r['estado']] ?? $r['estado'];
                         $tipo_label = $labels_tipo[$r['tipo']] ?? $r['tipo'];
@@ -143,7 +121,7 @@ require_once '../includes/navbar.php';
                             </form>
                         </td>
                     </tr>
-                <?php endwhile; endif; ?>
+                <?php endforeach; endif; ?>
                 </tbody>
             </table>
         </div>
@@ -162,16 +140,16 @@ require_once '../includes/navbar.php';
                     </tr>
                 </thead>
                 <tbody>
-                <?php if ($usuarios->num_rows === 0): ?>
+                <?php if (empty($usuarios)): ?>
                     <tr><td colspan="6" class="tabla-vacia">No hay usuarios.</td></tr>
-                <?php else:
-                    while ($u = $usuarios->fetch_assoc()):
-                        $fecha_u = date('d/m/Y', strtotime($u['fecha_registro']));
+                <?php else: foreach ($usuarios as $u):
+                        $fecha_u = date('d/m/Y', strtotime($u['fecha_registro'] ?? 'now'));
+                        $email_u = $u['email'] ?? '—';
                 ?>
                     <tr>
                         <td><?= $u['id_usuario'] ?></td>
                         <td><?= htmlspecialchars($u['nombre']) ?></td>
-                        <td><?= htmlspecialchars($u['email']) ?></td>
+                        <td><?= htmlspecialchars($email_u) ?></td>
                         <td>
                             <span class="tag <?= $u['rol']==='admin' ? 'tag-admin' : 'tag-pend' ?>">
                                 <?= $u['rol'] === 'admin' ? '⚙️ Admin' : '👤 Usuario' ?>
@@ -188,7 +166,7 @@ require_once '../includes/navbar.php';
                             </form>
                         </td>
                     </tr>
-                <?php endwhile; endif; ?>
+                <?php endforeach; endif; ?>
                 </tbody>
             </table>
         </div>
@@ -207,26 +185,24 @@ require_once '../includes/navbar.php';
                     </tr>
                 </thead>
                 <tbody>
-                <?php if ($areas_admin->num_rows === 0): ?>
+                <?php if (empty($areas_admin)): ?>
                     <tr><td colspan="6" class="tabla-vacia">No hay áreas.</td></tr>
-                <?php else:
-                    while ($a = $areas_admin->fetch_assoc()):
-                ?>
+                <?php else: foreach ($areas_admin as $a): ?>
                     <tr>
-                        <td><?= $a['id_area'] ?></td>
+                        <td><?= $a['id'] ?></td>
                         <td><?= htmlspecialchars($a['nombre']) ?></td>
                         <td><?= htmlspecialchars($a['colonia'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($a['tipo'] ?? '—') ?></td>
                         <td style="font-size:0.78rem;color:var(--muted);"><?= $a['lat'] ?? '—' ?>, <?= $a['lng'] ?? '—' ?></td>
                         <td>
-                            <button class="btn-actualizar" onclick='abrirEditarArea(<?= json_encode($a) ?>)'>✏️ Editar</button>
+                            <button class="btn-actualizar" onclick='abrirEditarArea(<?= json_encode(['id_area'=>$a['id'],'nombre'=>$a['nombre'],'colonia'=>$a['colonia'],'tipo'=>$a['tipo'],'lat'=>$a['lat'],'lng'=>$a['lng']]) ?>)'>✏️ Editar</button>
                             <form action="eliminar_area.php" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar esta área?')">
-                                <input type="hidden" name="id_area" value="<?= $a['id_area'] ?>">
+                                <input type="hidden" name="id_area" value="<?= $a['id'] ?>">
                                 <button class="btn-actualizar" style="background:var(--risk);" type="submit">🗑️</button>
                             </form>
                         </td>
                     </tr>
-                <?php endwhile; endif; ?>
+                <?php endforeach; endif; ?>
                 </tbody>
             </table>
         </div>

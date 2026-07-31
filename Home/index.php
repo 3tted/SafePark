@@ -12,25 +12,23 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
-$total_usuarios = $conn->query("SELECT COUNT(*) FROM USUARIO")->fetch_row()[0];
-$total_reportes = $conn->query("SELECT COUNT(*) FROM REPORTE")->fetch_row()[0];
-$total_areas    = $conn->query("SELECT COUNT(*) FROM AREA")->fetch_row()[0];
+$areas_raw    = api_get('/areas');
+$total_areas    = count($areas_raw);
+$total_usuarios = count(api_get('/usuarios'));
+$total_reportes = count(api_get('/reportes'));
 
-$result = $conn->query("SELECT nombre, colonia, lat, lng FROM AREA WHERE lat IS NOT NULL AND lng IS NOT NULL");
-$areas_home = [];
-while ($row = $result->fetch_assoc()) {
-    $areas_home[] = [
-        'nombre'  => $row['nombre'],
-        'colonia' => $row['colonia'] ?? '',
-        'lat'     => (float)$row['lat'],
-        'lng'     => (float)$row['lng'],
-        'score'   => 70
-    ];
-}
+$areas_home = array_values(array_map(fn($a) => [
+    'nombre'  => $a['nombre'],
+    'colonia' => $a['colonia'],
+    'tipo'    => $a['tipo'],
+    'lat'     => (float)$a['lat'],
+    'lng'     => (float)$a['lng'],
+    'score'   => $a['score']
+], array_filter($areas_raw, fn($a) => $a['lat'] && $a['lng'])));
 
 $nav_base   = '../';
 $nav_active = 'inicio';
@@ -47,12 +45,6 @@ require_once '../includes/navbar.php';
                     <button onclick="irABuscar()">Buscar</button>
                 </div>
                 <div class="sugerencias-box-home" id="sugerencias-box-home" style="display:none;"></div>
-                <div id="sugerencias-box-nominatim"
-                style="display:none; position:absolute; top:52px; left:0; right:0;
-                background:white; border-radius:12px;
-                box-shadow:0 6px 20px rgba(0,0,0,0.18); z-index:60;
-                max-height:280px; overflow-y:auto; text-align:left;">
-</div>
             </div>
             <div class="hero-stats">
                 <div class="stat"><div class="stat-n"><?= $total_areas ?></div><div class="stat-l">Areas registradas</div></div>
@@ -142,6 +134,7 @@ require_once '../includes/navbar.php';
                 return;
             }
 
+            document.querySelector('.search-bar').classList.add('abierto');
             box.innerHTML = coincidencias.map((item, i) => `
                 <div class="sugerencia-item-home" onclick="seleccionarSugerenciaHome(${marcadoresHome.indexOf(item)})">
                     <span class="sugerencia-icono-home">📍</span>
@@ -159,6 +152,7 @@ require_once '../includes/navbar.php';
 
             document.getElementById('home-busqueda').value = area.nombre;
             document.getElementById('sugerencias-box-home').style.display = 'none';
+            document.querySelector('.search-bar').classList.remove('abierto');
 
             homeMap.setView([area.lat, area.lng], 16);
             marker.openPopup();
@@ -167,66 +161,92 @@ require_once '../includes/navbar.php';
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-bar') && !e.target.closest('.sugerencias-box-home')) {
                 document.getElementById('sugerencias-box-home').style.display = 'none';
+                document.querySelector('.search-bar').classList.remove('abierto');
             }
         });
 
         homeMap.on('click', () => window.location.href = '../Mapa/index.php');
-        <script>
-let nominatimTimer = null;
 
-document.getElementById('home-busqueda').addEventListener('input', function() {
-    clearTimeout(nominatimTimer);
-    const texto = this.value.trim();
-    const box = document.getElementById('sugerencias-box-nominatim');
+        let nominatimTimer = null;
 
-    if (texto.length < 3) { box.style.display = 'none'; return; }
+        // Autocompletado local — busca en áreas de la BD
+        function mostrarSugerenciasHome() {
+            const texto = document.getElementById('home-busqueda').value.toLowerCase().trim();
+            const box = document.getElementById('sugerencias-box-home');
 
-    nominatimTimer = setTimeout(() => {
-        const url = 'https://nominatim.openstreetmap.org/search'
-            + '?q=' + encodeURIComponent(texto + ' Ciudad Juarez')
-            + '&format=json&limit=5&countrycodes=mx'
-            + '&bounded=1&viewbox=-106.55,31.60,-106.35,31.78';
+            if (!texto) { cerrarDropdownHome(); return; }
 
-        fetch(url, { headers: { 'Accept-Language': 'es' } })
-        .then(r => r.json())
-        .then(resultados => {
-            if (!resultados.length) { box.style.display = 'none'; return; }
+            const coincidencias = marcadoresHome.filter(({ area }) =>
+                area.nombre.toLowerCase().includes(texto) || area.colonia.toLowerCase().includes(texto)
+            ).slice(0, 6);
 
-            box.innerHTML = resultados.map(r => `
-                <div onclick="irANominatim(${r.lat}, ${r.lon}, '${r.display_name.split(',')[0].replace(/'/g, "\\'")}')"
-                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;
-                     cursor:pointer;border-bottom:1px solid #f3f4f6;font-family:Nunito,sans-serif;">
-                    <span style="font-size:1rem;flex-shrink:0;">📍</span>
+            if (coincidencias.length === 0) { cerrarDropdownHome(); return; }
+
+            const iconoTipo = { parque: '🌳', deportivo: '⚽', plaza: '🏛️' };
+            box.innerHTML = coincidencias.map(item => `
+                <div class="sugerencia-item-home" onclick="seleccionarSugerenciaHome(${marcadoresHome.indexOf(item)})">
+                    <span class="sugerencia-icono-home">${iconoTipo[item.area.tipo] || '📍'}</span>
                     <div>
-                        <div style="font-size:0.85rem;font-weight:700;color:#1B4332;">
-                            ${r.display_name.split(',')[0]}
-                        </div>
-                        <div style="font-size:0.75rem;color:#6b7280;">
-                            ${r.display_name.split(',').slice(1,3).join(',')}
-                        </div>
+                        <div class="sugerencia-nombre-home">${item.area.nombre}</div>
+                        <div class="sugerencia-colonia-home">${item.area.colonia}</div>
                     </div>
                 </div>
             `).join('');
             box.style.display = 'block';
-        })
-        .catch(() => { box.style.display = 'none'; });
-    }, 400);
-});
+            document.querySelector('.search-bar').classList.add('abierto');
+        }
 
-function irANominatim(lat, lng, nombre) {
-    document.getElementById('home-busqueda').value = nombre;
-    document.getElementById('sugerencias-box-nominatim').style.display = 'none';
-    homeMap.setView([parseFloat(lat), parseFloat(lng)], 16);
-}
+        // Autocompletado Nominatim — listener separado para no interferir con el local
+        document.getElementById('home-busqueda').addEventListener('input', function() {
+            clearTimeout(nominatimTimer);
+            const texto = this.value.trim();
+            if (!texto) return;
 
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-bar') && !e.target.closest('#sugerencias-box-nominatim')) {
-        document.getElementById('sugerencias-box-nominatim').style.display = 'none';
-    }
-});
-</script>
+            nominatimTimer = setTimeout(() => {
+                fetch('https://nominatim.openstreetmap.org/search'
+                    + '?q=' + encodeURIComponent(texto + ' Ciudad Juarez Chihuahua')
+                    + '&format=json&limit=8&countrycodes=mx',
+                    { headers: { 'Accept-Language': 'es', 'User-Agent': 'SafePark/1.0' } }
+                )
+                .then(r => r.json())
+                .then(resultados => {
+                    if (!resultados.length) return;
+                    const box = document.getElementById('sugerencias-box-home');
+                    const htmlNom = resultados.map(r => `
+                        <div class="sugerencia-item-home" onclick="irANominatim(${r.lat}, ${r.lon}, '${r.display_name.split(',')[0].replace(/'/g, "\\'")}')">
+                            <span class="sugerencia-icono-home">📍</span>
+                            <div>
+                                <div class="sugerencia-nombre-home">${r.display_name.split(',')[0]}</div>
+                                <div class="sugerencia-colonia-home">${r.display_name.split(',').slice(1,3).join(',')}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    const sep = '';
+                    box.innerHTML = (box.innerHTML || '') + sep + htmlNom;
+                    box.style.display = 'block';
+                    document.querySelector('.search-bar').classList.add('abierto');
+                })
+                .catch(() => {});
+            }, 200);
+        });
+
+        function cerrarDropdownHome() {
+            document.getElementById('sugerencias-box-home').style.display = 'none';
+            document.querySelector('.search-bar').classList.remove('abierto');
+        }
+
+        function irANominatim(lat, lng, nombre) {
+            document.getElementById('home-busqueda').value = nombre;
+            cerrarDropdownHome();
+            homeMap.setView([parseFloat(lat), parseFloat(lng)], 16);
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-bar') && !e.target.closest('.sugerencias-box-home')) {
+                cerrarDropdownHome();
+            }
+        });
     </script>
-    <script src="../Javascript/archivo.js"></script>
     <script>
         fetch('clima.php')
             .then(r => r.json())

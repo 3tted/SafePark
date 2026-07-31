@@ -10,5 +10,6 @@ if ($conn->connect_error) {
     die('Error de conexion: ' . $conn->connect_error);
 }
 
-$conn->set_charset('utf8');
+// utf8mb4 para soportar acentos, español y emojis (4 bytes)
+$conn->set_charset('utf8mb4');
 ?>

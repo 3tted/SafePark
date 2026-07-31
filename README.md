@@ -4,11 +4,11 @@
 
 **Descubre. Evalúa. Explora con seguridad.**
 
-[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/es/docs/Web/HTML)
-[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/es/docs/Web/CSS)
+[![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/es/docs/Web/JavaScript)
-[![Mapbox](https://img.shields.io/badge/Mapbox-000000?style=for-the-badge&logo=mapbox&logoColor=white)](https://www.mapbox.com/)
-[![OpenWeather](https://img.shields.io/badge/OpenWeather-EB6E4B?style=for-the-badge&logo=openweathermap&logoColor=white)](https://openweathermap.org/)
 
 > Proyecto integrador de la asignatura **Desarrollo Web Orientado a Servicios** — UTCJ
 
@@ -27,18 +27,37 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 | Pedro |
 | Ivan |
 
+---
+
+## 🧱 Arquitectura orientada a servicios (SOA)
+
+SafePark separa el frontend del backend mediante una API REST independiente:
+
+```
+Navegador / PHP (frontend)
+        ↕ HTTP
+API REST — Node.js + Express (puerto 3000)
+        ↕ mysql2
+Base de datos — MySQL (safepark_db)
+```
+
+- **PHP** maneja autenticación con sesiones y renderiza el HTML
+- **Node.js + Express** expone todos los datos vía API REST
+- **PHP no consulta la base de datos directamente** — todo pasa por el API
 
 ---
 
-## 🧱 Stack tecnológico
+## 🗂️ Stack tecnológico
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | HTML5 + CSS3 + JavaScript (Vanilla) |
-| Mapas | Mapbox GL JS |
+| Frontend / vistas | PHP + HTML5 + CSS3 + JavaScript (Vanilla) |
+| Mapas | Leaflet.js + OpenStreetMap |
 | Clima | OpenWeatherMap API |
-| Lugares | Google Places API |
-| Backend / API REST | API propia (`api.safepark.com.mx/v1`) |
+| Geocodificación / Autocompletado | Nominatim (OpenStreetMap) |
+| Backend / API REST | Node.js + Express (puerto 3000) |
+| Base de datos | MySQL (XAMPP) |
+| ORM / driver | mysql2 |
 | Tipografía | Nunito (Google Fonts) |
 | Control de versiones | Git / GitHub |
 
@@ -48,26 +67,72 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 
 ### 🔐 Autenticación
 - Inicio de sesión con correo y contraseña
-- Registro de nuevos usuarios con validación de campos
-- Sesión persistente (pendiente integración con API de usuarios)
+- Registro de nuevos usuarios
+- Sesiones PHP persistentes
+- Control de roles: `usuario` / `admin`
 
 ### 🗺️ Mapa interactivo
-- Visualización de áreas verdes en Ciudad Juárez con Mapbox GL JS
-- Filtros por tipo: Parques, Deportivo, Plaza
-- Semáforo de seguridad por área: 🟢 Seguro / 🟡 Precaución / 🔴 Riesgo
+- Visualización de áreas verdes en Ciudad Juárez con Leaflet.js
+- Filtros por tipo: Parques, Deportivos, Plazas
+- Semáforo de seguridad calculado con reportes de la comunidad
+- Agregar y editar áreas directamente desde el mapa
 
 ### 🏠 Dashboard principal
-- Buscador de áreas verdes con resultados en mapa
-- Estadísticas en tiempo real: áreas registradas, reportes y usuarios
-- Lista de áreas destacadas con badge de seguridad
+- Buscador con autocompletado via Nominatim
+- Estadísticas en tiempo real: áreas, reportes y usuarios
+- Clima actual (OpenWeatherMap)
 
 ### 📋 Reportes comunitarios
-- Los usuarios pueden reportar incidentes o condiciones en áreas verdes
-- Los reportes alimentan el semáforo de seguridad de cada área
+- Enviar reportes de incidentes, condiciones o sugerencias por área
+- Los reportes alimentan el semáforo de seguridad
+- Panel lateral con historial de reportes propios
 
-### 🌤️ Clima en tiempo real *(pendiente)*
-- Condiciones climáticas actuales integradas con OpenWeatherMap
-- Visible en el detalle de cada área verde
+### 🌐 Comunidad
+- Feed de actividad: reportes y eventos de la comunidad
+- Reacciones con emojis estilo Discord (toggle, conteo en tiempo real)
+- Comentarios por reporte/evento
+- Crear eventos comunitarios
+- Top contribuidores
+
+### 👤 Perfil de usuario
+- Ver puntos acumulados por reportes
+- Historial de reportes propios
+
+### ⚙️ Panel de administración
+- Estadísticas generales (usuarios, reportes, pendientes, áreas)
+- Gestión de reportes: cambiar estado (pendiente / en proceso / resuelto)
+- Gestión de usuarios: cambiar rol
+- Gestión de áreas: editar y eliminar
+
+---
+
+## 📡 API REST — Endpoints
+
+Base URL: `http://localhost:3000/api`
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/areas` | Todas las áreas con score de seguridad |
+| GET | `/areas/:id` | Área específica |
+| POST | `/areas` | Crear área (con foto) |
+| PUT | `/areas/:id` | Actualizar área (con foto) |
+| DELETE | `/areas/:id` | Eliminar área y registros relacionados |
+| GET | `/areas/stats/resumen` | Estadísticas generales |
+| GET | `/reportes` | Todos los reportes recientes |
+| GET | `/reportes/area/:id` | Reportes de un área |
+| GET | `/reportes/usuario/:id` | Reportes de un usuario |
+| POST | `/reportes` | Crear reporte |
+| PUT | `/reportes/:id` | Actualizar estado de reporte |
+| GET | `/usuarios` | Lista de usuarios |
+| GET | `/usuarios/:id` | Perfil con puntos |
+| PUT | `/usuarios/:id/rol` | Cambiar rol de usuario |
+| GET | `/eventos` | Todos los eventos |
+| POST | `/eventos` | Crear evento |
+| GET | `/reacciones` | Reacciones por reporte/evento |
+| POST | `/reacciones` | Agregar o quitar reacción (toggle) |
+| GET | `/comentarios` | Comentarios por reporte/evento |
+| POST | `/comentarios` | Agregar comentario |
+| GET | `/health` | Estado del servidor |
 
 ---
 
@@ -75,69 +140,154 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 
 ```
 SafePark/
-├── CSS/styles.css          ← estilos compartidos (reset, navbar, variables)
-├── Javascript/archivo.js   ← JS compartido
-├── Login/
-│   ├── index.html
+├── api/                            ← API REST (Node.js + Express)
+│   ├── index.js                    ← Servidor principal (puerto 3000)
+│   ├── db.js                       ← Pool de conexión MySQL (mysql2)
+│   ├── .env                        ← Variables de entorno (no subir a git)
+│   ├── package.json
+│   └── routes/
+│       ├── areas.js                ← GET, POST, PUT, DELETE + stats
+│       ├── reportes.js             ← GET, POST, PUT (estado)
+│       ├── usuarios.js             ← GET, PUT (rol)
+│       ├── eventos.js              ← GET, POST
+│       ├── reacciones.js           ← GET, POST (toggle)
+│       └── comentarios.js          ← GET, POST
+├── Admin/                          ← Panel de administración
+│   ├── index.php                   ← Vista principal del admin
+│   ├── actualizar_reporte.php      ← Cambia estado de reporte via API
+│   ├── actualizar_area.php         ← Edita área via API
+│   ├── cambiar_rol.php             ← Cambia rol de usuario via API
+│   ├── eliminar_area.php           ← Elimina área via API
+│   ├── admin.js
 │   └── style.css
-├── Registro/
-│   ├── index.html
+
+├── Comunidad/                      ← Feed, eventos, reacciones, comentarios
+│   ├── index.php                   ← Feed de actividad
+│   ├── guardar_evento.php          ← Crea evento via API
+│   ├── comunidad.js                ← Reacciones y comentarios (llama API directo)
 │   └── style.css
-├── Home/
-│   ├── index.html
+├── Explorar/                       ← Búsqueda y filtrado de áreas
+│   ├── index.php
+│   ├── explorar.js
 │   └── style.css
-├── Mapa/
-│   ├── index.html
-│   ├── style.css
-│   └── archivo.js          ← geolocalización + Google Maps embed
-└── README.md
+├── Home/                           ← Dashboard principal
+│   ├── index.php
+│   ├── clima.php                   ← Proxy OpenWeatherMap
+│   ├── nominatim_proxy.php         ← Proxy Nominatim (autocompletado)
+│   └── style.css
+├── Login/                          ← Autenticación
+│   ├── index.php
+│   ├── login.php
+│   ├── logout.php
+│   └── style.css
+├── Mapa/                           ← Mapa interactivo (Leaflet.js)
+│   ├── index.php
+│   ├── archivo.js                  ← Lógica del mapa y marcadores
+│   ├── guardar_area.php            ← Crea área via API
+│   ├── actualizar_area_usuario.php ← Edita área (usuario) via API
+│   └── style.css
+├── Perfil/                         ← Perfil de usuario
+│   ├── index.php
+│   ├── editar.php
+│   ├── actualizar.php
+│   ├── perfil.js
+│   └── style.css
+├── Registro/                       ← Registro de nuevos usuarios
+│   ├── index.php
+│   ├── registro.php
+│   └── style.css
+├── Reportar/                       ← Envío de reportes
+│   ├── index.php
+│   ├── guardar_reporte.php         ← Envía reporte via API
+│   ├── reportar.js
+│   └── style.css
+├── Assets/                         ← Logo, fotos de áreas
+├── CSS/styles.css                  ← Estilos globales (variables, navbar, reset)
+├── database/
+│   └── conexion.php                ← Conexión PHP (solo para auth/sesiones)
+└── includes/
+    ├── api.php                     ← Helpers: api_get(), api_post(), api_put()
+    ├── auth.php                    ← Funciones de sesión y permisos
+    ├── navbar.php                  ← Navbar compartida
+    ├── modal_editar_area.php       ← Modal reutilizable para editar áreas
+    ├── config_clima.php            ← API key de OpenWeatherMap (no subir a git)
+    └── config_clima.example.php    ← Plantilla de configuración del clima
 ```
 
 ---
 
-## 🎨 Paleta de colores
+## 🚀 Cómo levantar el proyecto
 
-| Variable | Color | Hex |
-|---|---|---|
-| `--g1` | Verde oscuro | `#1B4332` |
-| `--g2` | Verde medio | `#2D6A4F` |
-| `--g3` | Verde principal | `#52B788` |
-| `--g4` | Verde claro | `#95D5B2` |
-| `--g5` | Verde muy claro | `#D8F3DC` |
-| `--safe` | Seguro | `#40916C` |
-| `--warn` | Precaución | `#F4A261` |
-| `--risk` | Riesgo | `#E63946` |
+### Requisitos
+- XAMPP (Apache + MySQL)
+- Node.js
+
+### Pasos
+
+1. **Iniciar XAMPP** — encender Apache y MySQL
+
+2. **Levantar la API REST:**
+```bash
+cd SafePark/api
+node index.js
+```
+El API corre en `http://localhost:3000`
+
+3. **Abrir el proyecto** en el navegador:
+```
+http://localhost/SafePark/Login/index.php
+```
 
 ---
 
 ## 🚦 Semáforo de seguridad
 
-El nivel de seguridad de cada área se calcula con base en los reportes de la comunidad:
+El score de cada área se calcula automáticamente en la API según sus reportes:
 
-| Nivel | Color | Significado |
+```
+score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
+```
+
+| Nivel | Score | Color |
 |---|---|---|
-| 🟢 Seguro | `#40916C` | Área sin reportes negativos recientes |
-| 🟡 Precaución | `#F4A261` | Reportes menores o condiciones a mejorar |
-| 🔴 Riesgo | `#E63946` | Reportes activos de inseguridad o peligro |
+| 🟢 Seguro | ≥ 70 | `#40916C` |
+| 🟡 Precaución | 40 – 69 | `#F4A261` |
+| 🔴 Riesgo | < 40 | `#E63946` |
+
+---
+
+## 🎨 Paleta de colores
+
+| Variable | Descripción | Color | Hex |
+|---|---|---|---|
+| `--g1` | Verde muy oscuro (navbar, fondos) | 🟢 | `#1B4332` |
+| `--g2` | Verde oscuro (gradientes) | 🟢 | `#2D6A4F` |
+| `--g3` | Verde medio (botones, accents) | 🟢 | `#52B788` |
+| `--g4` | Verde claro (hover, bordes) | 🟢 | `#95D5B2` |
+| `--g5` | Verde muy claro (fondos suaves) | 🟢 | `#D8F3DC` |
+| `--safe` | Verde seguro (semáforo) | 🟢 | `#40916C` |
+| `--warn` | Naranja precaución (semáforo) | 🟠 | `#F4A261` |
+| `--risk` | Rojo riesgo (semáforo) | 🔴 | `#E63946` |
 
 ---
 
 ## 📊 Estado del proyecto
 
-| Vista / Módulo | Estado |
+| Módulo | Estado |
 |---|---|
-| Login | ✅ Prototipo listo |
-| Registro | ✅ Prototipo listo |
-| Home / Dashboard | ✅ Prototipo listo |
-| Mapa interactivo | ✅ Prototipo listo |
-| Integración Mapbox GL JS | ⏳ Pendiente |
-| API de usuarios | ⏳ Pendiente |
-| API de áreas y reportes | ⏳ Pendiente |
-| OpenWeatherMap | ⏳ Pendiente |
-| Google Places | ⏳ Pendiente |
-| Perfil de usuario | ⏳ Pendiente |
-| Panel de administración | ⏳ Pendiente |
-
----
-
-
+| Login / Registro | ✅ Completo |
+| Home / Dashboard | ✅ Completo |
+| Mapa interactivo | ✅ Completo |
+| Explorar áreas | ✅ Completo |
+| Reportar | ✅ Completo |
+| Perfil de usuario | ✅ Completo |
+| Comunidad (feed) | ✅ Completo |
+| Reacciones emoji | ✅ Completo |
+| Comentarios | ✅ Completo |
+| Eventos comunitarios | ✅ Completo |
+| Panel de administración | ✅ Completo |
+| API REST (Node.js) | ✅ Completo |
+| Clima en tiempo real (OpenWeatherMap) | ✅ Completo |
+| Geocodificación (Nominatim) | ✅ Completo |
+| Autenticación JWT en API | ⏳ Pendiente |
+| Subida de foto en reportes | ⏳ Pendiente |

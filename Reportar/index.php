@@ -11,29 +11,16 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
 $id_usuario = $_SESSION['id_usuario'];
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';
 
-// Cargar áreas para el select
-$areas = $conn->query("SELECT id_area, nombre FROM AREA ORDER BY nombre");
-
-// Cargar reportes del usuario
-$stmt = $conn->prepare("
-    SELECT R.tipo, R.descripcion, R.estado, R.fecha, A.nombre AS area_nombre
-    FROM REPORTE R
-    JOIN AREA A ON R.id_area = A.id_area
-    WHERE R.id_usuario = ?
-    ORDER BY R.fecha DESC
-    LIMIT 5
-");
-$stmt->bind_param("i", $id_usuario);
-$stmt->execute();
-$mis_reportes = $stmt->get_result();
+$areas        = api_get('/areas');
+$mis_reportes = array_slice(api_get('/reportes/usuario/' . $id_usuario), 0, 5);
 
 $iconos_tipo  = ['incidente' => '🚨', 'condicion' => '🏚️', 'sugerencia' => '💡'];
 $labels_tipo  = ['incidente' => 'Incidente de seguridad', 'condicion' => 'Condición del área', 'sugerencia' => 'Sugerencia'];
@@ -57,11 +44,13 @@ require_once '../includes/navbar.php';
                 <div class="msg-ok">✅ Reporte enviado correctamente. Será revisado pronto.</div>
             <?php elseif ($error === 'campos'): ?>
                 <div class="msg-err">❌ Completa todos los campos antes de enviar.</div>
+            <?php elseif ($error === 'foto'): ?>
+                <div class="msg-err">❌ Solo se permiten imágenes JPG, PNG o WEBP (máx. 5MB).</div>
             <?php elseif ($error === 'servidor'): ?>
                 <div class="msg-err">❌ Error del servidor, intenta de nuevo.</div>
             <?php endif; ?>
 
-            <form action="guardar_reporte.php" method="POST" id="form-reporte">
+            <form action="guardar_reporte.php" method="POST" id="form-reporte" enctype="multipart/form-data">
                 <input type="hidden" name="tipo" id="input-tipo" value="incidente">
 
                 <div class="form-group">
@@ -86,10 +75,9 @@ require_once '../includes/navbar.php';
                     <label class="form-label">Área o zona</label>
                     <select class="form-input" name="id_area" required>
                         <option value="">Selecciona un área...</option>
-                        <?php if ($areas && $areas->num_rows > 0):
-                            while ($area = $areas->fetch_assoc()): ?>
-                            <option value="<?= $area['id_area'] ?>"><?= htmlspecialchars($area['nombre']) ?></option>
-                        <?php endwhile; endif; ?>
+                        <?php foreach ($areas as $area): ?>
+                            <option value="<?= $area['id'] ?>"><?= htmlspecialchars($area['nombre']) ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
@@ -98,11 +86,15 @@ require_once '../includes/navbar.php';
                     <textarea class="form-input" name="descripcion" rows="4" placeholder="Describe lo que observaste..." required></textarea>
                 </div>
 
+
+
                 <div class="form-group">
                     <label class="form-label">Foto (opcional)</label>
-                    <div class="upload-area">
-                        📷 Próximamente disponible
+                    <div class="foto-upload-area" id="foto-drop" onclick="document.getElementById('input-foto').click()">
+                        <div id="foto-placeholder">📷 Adjuntar foto · JPG, PNG o WEBP · Máx. 5MB</div>
+                        <img id="foto-preview" src="" alt="Preview" style="display:none;max-width:100%;max-height:200px;border-radius:8px;">
                     </div>
+                    <input type="file" id="input-foto" name="foto" accept="image/*" style="display:none" onchange="previewFotoReporte(this)">
                 </div>
 
                 <button class="btn-submit" type="submit">Enviar reporte</button>
@@ -113,41 +105,35 @@ require_once '../includes/navbar.php';
         <div class="reportes-side">
             <div class="side-title">Mis reportes recientes</div>
 
-            <div class="reporte-big">
-                <div class="reporte-big-head">
-                    <div class="reporte-big-icon" style="background:#d8f3dc;">✅</div>
-                    <div>
-                        <div class="reporte-big-tipo">Condición del área</div>
-                        <div class="reporte-big-meta">Parque Central · Hace 2 días</div>
+            <?php if (empty($mis_reportes)): ?>
+                <p style="color:#888;font-size:0.9rem;">Aún no tienes reportes.</p>
+            <?php else: foreach ($mis_reportes as $r):
+                $tipo    = $r['tipo'] ?? 'incidente';
+                $estado  = $r['estado'] ?? 'pendiente';
+                $icon_t  = $iconos_tipo[$tipo]  ?? '📋';
+                $label_t = $labels_tipo[$tipo]  ?? ucfirst($tipo);
+                $icon_e  = $iconos_estado[$estado]['icon'] ?? '⚠️';
+                $bg_e    = $iconos_estado[$estado]['bg']   ?? '#fef3c7';
+                $tag_cls = $tags_estado[$estado]  ?? 'tag-pend';
+                $label_e = $labels_estado[$estado] ?? ucfirst($estado);
+                $area_nombre = htmlspecialchars($r['area'] ?? 'Sin área');
+                $fecha = date('d/m/Y', strtotime($r['fecha'] ?? 'now'));
+            ?>
+                <div class="reporte-big">
+                    <div class="reporte-big-head">
+                        <div class="reporte-big-icon" style="background:<?= $bg_e ?>;"><?= $icon_e ?></div>
+                        <div>
+                            <div class="reporte-big-tipo"><?= $label_t ?></div>
+                            <div class="reporte-big-meta"><?= $area_nombre ?> · <?= $fecha ?></div>
+                        </div>
+                        <span class="tag <?= $tag_cls ?>"><?= $label_e ?></span>
                     </div>
-                    <span class="tag tag-aprov">Aprobado</span>
+                    <div class="reporte-big-desc"><?= htmlspecialchars($r['descripcion'] ?? '') ?></div>
+                    <?php if (!empty($r['foto'])): ?>
+                        <img src="../Assets/fotos/<?= htmlspecialchars($r['foto']) ?>" alt="Foto del reporte" class="reporte-big-foto">
+                    <?php endif; ?>
                 </div>
-                <div class="reporte-big-desc">Parque bien mantenido, bancas limpias y buena iluminación nocturna.</div>
-            </div>
-
-            <div class="reporte-big">
-                <div class="reporte-big-head">
-                    <div class="reporte-big-icon" style="background:#fef3c7;">⚠️</div>
-                    <div>
-                        <div class="reporte-big-tipo">Incidente seguridad</div>
-                        <div class="reporte-big-meta">Plaza Norte · Hace 5 días</div>
-                    </div>
-                    <span class="tag tag-pend">Pendiente</span>
-                </div>
-                <div class="reporte-big-desc">Poca iluminación en el acceso principal después de las 9pm.</div>
-            </div>
-
-            <div class="reporte-big">
-                <div class="reporte-big-head">
-                    <div class="reporte-big-icon" style="background:#fee2e2;">❌</div>
-                    <div>
-                        <div class="reporte-big-tipo">Sugerencia</div>
-                        <div class="reporte-big-meta">Bosque Sur · Hace 8 días</div>
-                    </div>
-                    <span class="tag tag-rech">Rechazado</span>
-                </div>
-                <div class="reporte-big-desc">Reporte duplicado. Ya existe uno similar aprobado.</div>
-            </div>
+            <?php endforeach; endif; ?>
         </div>
 
     </div>
@@ -155,5 +141,19 @@ require_once '../includes/navbar.php';
     <div class="footer-bar">SafePark · Reportar · Ciudad Juárez</div>
 
     <script src="reportar.js"></script>
+    <script>
+    function previewFotoReporte(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('foto-placeholder').style.display = 'none';
+                const img = document.getElementById('foto-preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    </script>
 </body>
 </html>
