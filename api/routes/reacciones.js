@@ -13,6 +13,18 @@ router.get('/', async (req, res) => {
     res.json(rows);
 });
 
+// GET /api/reacciones/agrupadas — todas las reacciones contadas por emoji.
+// Comunidad las pinta del lado del servidor, asi que necesita el resumen completo
+// en una sola llamada en vez de una por publicacion.
+router.get('/agrupadas', async (req, res) => {
+    const [rows] = await db.query(`
+        SELECT id_reporte, id_evento, emoji, COUNT(*) AS total
+        FROM REACCION
+        GROUP BY id_reporte, id_evento, emoji
+    `);
+    res.json(rows);
+});
+
 // POST /api/reacciones — toggle reacción
 router.post('/', async (req, res) => {
     const { id_usuario, emoji, id_reporte, id_evento } = req.body;

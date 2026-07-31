@@ -13,12 +13,11 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
-$es_admin  = es_admin($conn, $_SESSION['id_usuario']);
+$es_admin  = es_admin();
 $areas_raw = api_get('/areas');
 
 $areas_db = array_values(array_map(fn($a) => [

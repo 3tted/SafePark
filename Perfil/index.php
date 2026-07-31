@@ -11,27 +11,21 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
 
-// Datos del usuario desde la DB (auth sigue en PHP)
-$stmt = $conn->prepare("SELECT nombre, email, fecha_registro, foto_perfil FROM USUARIO WHERE id_usuario = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$usuario = $stmt->get_result()->fetch_assoc();
-
-$nombre  = htmlspecialchars($usuario['nombre']);
-$email   = htmlspecialchars($usuario['email']);
-$fecha   = date('d/m/Y', strtotime($usuario['fecha_registro']));
-$inicial = strtoupper(mb_substr($nombre, 0, 1));
-$foto    = $usuario['foto_perfil'] ?? null;
-
-// Puntos y reportes desde la API
+// Datos, puntos y reportes vienen todos del API en una sola llamada
 $perfil_api = api_get('/usuarios/' . $id);
+
+$nombre  = htmlspecialchars($perfil_api['nombre'] ?? '');
+$email   = htmlspecialchars($perfil_api['email'] ?? '');
+$fecha   = date('d/m/Y', strtotime($perfil_api['fecha_registro'] ?? 'now'));
+$inicial = strtoupper(mb_substr($nombre, 0, 1));
+$foto    = $perfil_api['foto_perfil'] ?? null;
+
 $puntos_usuario         = $perfil_api['puntos'] ?? 0;
 $total_reportes_usuario = array_sum(array_column($perfil_api['reportes'] ?? [], 'total'));
 $mis_reportes           = api_get('/reportes/usuario/' . $id);

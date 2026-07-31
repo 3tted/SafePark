@@ -8,6 +8,7 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/api/auth',        require('./routes/auth'));
 app.use('/api/areas',       require('./routes/areas'));
 app.use('/api/reportes',    require('./routes/reportes'));
 app.use('/api/usuarios',    require('./routes/usuarios'));

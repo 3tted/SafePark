@@ -11,7 +11,6 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
@@ -39,10 +38,9 @@ foreach ($eventos_api as $e) {
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
 $actividad = array_slice($actividad, 0, 10);
 
-// Reacciones agrupadas
+// Reacciones agrupadas, indexadas por publicación para pintarlas en el feed
 $reacciones_db = [];
-$res_r = $conn->query("SELECT id_reporte, id_evento, emoji, COUNT(*) AS total FROM REACCION GROUP BY id_reporte, id_evento, emoji");
-while ($row = $res_r->fetch_assoc()) {
+foreach (api_get('/reacciones/agrupadas') as $row) {
     $key = $row['id_reporte'] ? 'r_'.$row['id_reporte'] : 'e_'.$row['id_evento'];
     $reacciones_db[$key][$row['emoji']] = (int)$row['total'];
 }

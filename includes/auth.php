@@ -2,6 +2,8 @@
 // session_status evita llamar session_start() dos veces si ya fue iniciada por otro include
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+require_once __DIR__ . '/api.php';
+
 // Redirige al login si no hay sesión activa
 function requiere_sesion($redirect_base = '../') {
     if (!isset($_SESSION['id_usuario'])) {
@@ -10,22 +12,40 @@ function requiere_sesion($redirect_base = '../') {
     }
 }
 
-// Consulta la BD en lugar de confiar en $_SESSION['rol'] para evitar que un usuario
-// manipule su propia sesión y obtenga privilegios de admin
-function es_admin($conn, $id_usuario) {
-    $stmt = $conn->prepare("SELECT rol FROM USUARIO WHERE id_usuario = ?");
-    $stmt->bind_param("i", $id_usuario);
-    $stmt->execute();
-    $stmt->bind_result($rol);
-    $stmt->fetch();
-    $stmt->close();
+// Consulta el rol al API. Es la fuente de verdad, pero cuesta una llamada HTTP.
+function consultar_rol($id_usuario): ?string {
+    $r = api_get('/usuarios/' . intval($id_usuario) . '/rol');
+    return $r['rol'] ?? null;
+}
+
+// Chequeo rápido para decidir qué mostrar en la interfaz (el enlace de Admin en
+// la navbar, el botón de editar área). Usa el rol guardado en la sesión al
+// iniciar sesión — las sesiones de PHP viven en el servidor, así que el usuario
+// no puede alterarlas desde el navegador.
+//
+// NO uses esta función para proteger una página: usa requiere_admin().
+function es_admin($id_usuario = null): bool {
+    if (isset($_SESSION['rol'])) return $_SESSION['rol'] === 'admin';
+
+    // Sesión iniciada antes de que el rol se guardara: lo pedimos y lo cacheamos
+    $id = $id_usuario ?? ($_SESSION['id_usuario'] ?? null);
+    if (!$id) return false;
+
+    $rol = consultar_rol($id);
+    if ($rol !== null) $_SESSION['rol'] = $rol;
     return $rol === 'admin';
 }
 
-// Protege rutas de admin: primero verifica sesión, luego rol
-function requiere_admin($conn, $redirect_base = '../') {
+// Protege las páginas de administración. A diferencia de es_admin(), este
+// verifica contra el API en cada carga: si a alguien le quitan el rol, pierde
+// el acceso de inmediato sin tener que cerrar sesión.
+function requiere_admin($redirect_base = '../') {
     requiere_sesion($redirect_base);
-    if (!es_admin($conn, $_SESSION['id_usuario'])) {
+
+    $rol = consultar_rol($_SESSION['id_usuario']);
+    $_SESSION['rol'] = $rol;   // mantiene sincronizado el cache de es_admin()
+
+    if ($rol !== 'admin') {
         header('Location: ' . $redirect_base . 'Home/index.php');
         exit;
     }

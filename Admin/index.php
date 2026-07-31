@@ -11,10 +11,9 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_admin($conn);
+requiere_admin();
 
 $stats           = api_get('/areas/stats/resumen');
 $total_usuarios  = $stats['total_usuarios'] ?? 0;

@@ -41,9 +41,14 @@ API REST — Node.js + Express (puerto 3000)
 Base de datos — MySQL (safepark_db)
 ```
 
-- **PHP** maneja autenticación con sesiones y renderiza el HTML
-- **Node.js + Express** expone todos los datos vía API REST
-- **PHP no consulta la base de datos directamente** — todo pasa por el API
+- **PHP** mantiene la sesión del usuario y renderiza el HTML
+- **Node.js + Express** expone todos los datos vía API REST y es el único que
+  habla con MySQL — incluida la verificación de contraseñas
+- **PHP no consulta la base de datos directamente**: no existe ninguna conexión
+  MySQL en el código PHP, todo pasa por el API
+
+Esto permite alojar el frontend y el API en servidores distintos, y que la base
+de datos nunca quede expuesta a internet.
 
 ---
 
@@ -110,28 +115,39 @@ Base de datos — MySQL (safepark_db)
 
 Base URL: `http://localhost:3000/api`
 
+Las rutas marcadas con 🔒 exigen la cabecera `X-API-Secret` y solo las llama el
+servidor PHP. Las de lectura son públicas porque el JavaScript del navegador las
+consume directamente.
+
 | Método | Ruta | Descripción |
 |--------|------|-------------|
+| POST | `/auth/login` 🔒 | Verifica credenciales y devuelve el usuario |
 | GET | `/areas` | Todas las áreas con score de seguridad |
 | GET | `/areas/:id` | Área específica |
-| POST | `/areas` | Crear área (con foto) |
-| PUT | `/areas/:id` | Actualizar área (con foto) |
-| DELETE | `/areas/:id` | Eliminar área y registros relacionados |
+| POST | `/areas` 🔒 | Crear área |
+| PUT | `/areas/:id` 🔒 | Actualizar área |
+| DELETE | `/areas/:id` 🔒 | Eliminar área y registros relacionados |
 | GET | `/areas/stats/resumen` | Estadísticas generales |
 | GET | `/reportes` | Todos los reportes recientes |
 | GET | `/reportes/area/:id` | Reportes de un área |
 | GET | `/reportes/usuario/:id` | Reportes de un usuario |
-| POST | `/reportes` | Crear reporte |
-| PUT | `/reportes/:id` | Actualizar estado de reporte |
+| POST | `/reportes` 🔒 | Crear reporte |
+| PUT | `/reportes/:id` 🔒 | Actualizar estado de reporte |
 | GET | `/usuarios` | Lista de usuarios |
-| GET | `/usuarios/:id` | Perfil con puntos |
-| PUT | `/usuarios/:id/rol` | Cambiar rol de usuario |
+| GET | `/usuarios/:id` | Perfil con puntos y datos personales |
+| GET | `/usuarios/:id/rol` | Rol de un usuario (control de permisos) |
+| POST | `/usuarios` 🔒 | Registrar usuario nuevo |
+| PUT | `/usuarios/:id` 🔒 | Actualizar perfil (nombre, correo, contraseña, foto) |
+| PUT | `/usuarios/:id/rol` 🔒 | Cambiar rol de usuario |
 | GET | `/eventos` | Todos los eventos |
-| POST | `/eventos` | Crear evento |
-| GET | `/reacciones` | Reacciones por reporte/evento |
+| POST | `/eventos` 🔒 | Crear evento |
+| GET | `/reacciones` | Reacciones de un reporte/evento |
+| GET | `/reacciones/agrupadas` | Todas las reacciones contadas (feed) |
 | POST | `/reacciones` | Agregar o quitar reacción (toggle) |
 | GET | `/comentarios` | Comentarios por reporte/evento |
 | POST | `/comentarios` | Agregar comentario |
+| GET | `/favoritos/:id_usuario` | Áreas favoritas de un usuario |
+| POST | `/favoritos` | Guardar o quitar favorito (toggle) |
 | GET | `/health` | Estado del servidor |
 
 ---
@@ -145,10 +161,14 @@ SafePark/
 │   ├── db.js                       ← Pool de conexión MySQL (mysql2)
 │   ├── .env                        ← Variables de entorno (no subir a git)
 │   ├── package.json
+│   ├── middleware/
+│   │   └── solo_php.js             ← Exige X-API-Secret en las escrituras
 │   └── routes/
+│       ├── auth.js                 ← POST /login (verifica contraseñas)
 │       ├── areas.js                ← GET, POST, PUT, DELETE + stats
 │       ├── reportes.js             ← GET, POST, PUT (estado)
-│       ├── usuarios.js             ← GET, PUT (rol)
+│       ├── usuarios.js             ← GET, POST, PUT (perfil y rol)
+│       ├── favoritos.js            ← GET, POST (toggle)
 │       ├── eventos.js              ← GET, POST
 │       ├── reacciones.js           ← GET, POST (toggle)
 │       └── comentarios.js          ← GET, POST
@@ -204,10 +224,11 @@ SafePark/
 ├── Assets/                         ← Logo, fotos de áreas
 ├── CSS/styles.css                  ← Estilos globales (variables, navbar, reset)
 ├── database/
-│   └── conexion.php                ← Conexión PHP (solo para auth/sesiones)
+│   └── SafePark.sql                ← Esquema completo de la base de datos
 └── includes/
-    ├── api.php                     ← Helpers: api_get(), api_post(), api_put()
-    ├── auth.php                    ← Funciones de sesión y permisos
+    ├── api.php                     ← Helpers: api_get/post/put/delete + secreto
+    ├── auth.php                    ← Sesión y permisos (consulta el rol al API)
+    ├── fotos.php                   ← Guarda y valida las fotos subidas
     ├── navbar.php                  ← Navbar compartida
     ├── modal_editar_area.php       ← Modal reutilizable para editar áreas
     ├── config_clima.php            ← API key de OpenWeatherMap (no subir a git)
@@ -236,6 +257,25 @@ El API corre en `http://localhost:3000`
 3. **Abrir el proyecto** en el navegador:
 ```
 http://localhost/SafePark/Login/index.php
+```
+
+En local no hace falta configurar nada más: el PHP usa `http://localhost:3000/api`
+por defecto y el API deja pasar las escrituras sin secreto (avisa al arrancar).
+
+### Variables de entorno para producción
+
+| Dónde | Variable | Para qué |
+|---|---|---|
+| API | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Conexión a MySQL |
+| API | `API_SECRET` | Protege las rutas de escritura |
+| PHP | `SAFEPARK_API` | URL del API desplegado |
+| PHP | `SAFEPARK_API_SECRET` | Debe coincidir con `API_SECRET` |
+
+En el hosting PHP se definen con un `.htaccess` en la raíz:
+
+```apache
+SetEnv SAFEPARK_API https://tu-api.up.railway.app/api
+SetEnv SAFEPARK_API_SECRET tu_secreto
 ```
 
 ---
@@ -289,5 +329,11 @@ score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
 | API REST (Node.js) | ✅ Completo |
 | Clima en tiempo real (OpenWeatherMap) | ✅ Completo |
 | Geocodificación (Nominatim) | ✅ Completo |
-| Autenticación JWT en API | ⏳ Pendiente |
-| Subida de foto en reportes | ⏳ Pendiente |
+| Subida de foto en reportes | ✅ Completo |
+| Favoritos | ✅ Completo |
+| Filtros por nivel de seguridad | ✅ Completo |
+| Protección del API con secreto compartido | ✅ Completo |
+| Autenticación centralizada en el API | ✅ Completo |
+| Despliegue del API y la base de datos | ✅ En Railway |
+| Despliegue del frontend PHP | ⏳ Pendiente |
+| Tokens JWT por usuario | ⏳ Pendiente (el secreto compartido cubre el caso actual) |

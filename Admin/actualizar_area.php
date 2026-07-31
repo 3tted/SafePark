@@ -1,9 +1,8 @@
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 require_once '../includes/fotos.php';
-requiere_admin($conn);
+requiere_admin();
 
 $id_area = intval($_POST['id_area'] ?? 0);
 $nombre    = trim($_POST['nombre'] ?? '');

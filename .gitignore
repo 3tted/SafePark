@@ -3,8 +3,7 @@ includes/config_clima.php
 
 # Node
 node_modules/
-API_Usuarios/node_modules/
-API_Datos/node_modules/
 .env
-API_Usuarios/.env
-API_Datos/.env
+
+# Diagnostico temporal del hosting — se sube por FTP a mano y se borra despues
+prueba_hosting.php

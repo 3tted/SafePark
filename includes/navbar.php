@@ -1,11 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-$es_admin = false;
-if (isset($_SESSION['id_usuario'])) {
-    require_once __DIR__ . '/../database/conexion.php';
-    $es_admin = es_admin($conn, $_SESSION['id_usuario']);
-}
+$es_admin = isset($_SESSION['id_usuario']) && es_admin();
 ?>
 <nav class="navbar">
     <a class="nav-logo" href="<?= $nav_base ?>Home/index.php">
