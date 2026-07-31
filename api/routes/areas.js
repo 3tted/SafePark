@@ -1,5 +1,6 @@
-const router = require('express').Router();
-const db     = require('../db');
+const router    = require('express').Router();
+const db        = require('../db');
+const soloPHP   = require('../middleware/solo_php');
 
 // Las fotos las guarda PHP en Assets/fotos/ y aquí sólo se registra el nombre
 // del archivo. Así la imagen vive en el mismo servidor que la sirve.
@@ -45,7 +46,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/areas — crear área (foto opcional, ya guardada por PHP)
-router.post('/', async (req, res) => {
+router.post('/', soloPHP, async (req, res) => {
     const { id_usuario, nombre, colonia, direccion, horario, tipo, lat, lng, foto } = req.body;
     const tipos_validos = ['parque', 'deportivo', 'plaza'];
 
@@ -67,7 +68,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/areas/:id — actualizar área (foto opcional, ya guardada por PHP)
-router.put('/:id', async (req, res) => {
+router.put('/:id', soloPHP, async (req, res) => {
     const { id_usuario, nombre, colonia, direccion, horario, tipo, lat, lng, foto } = req.body;
     const id_area = parseInt(req.params.id);
     const tipos_validos = ['parque', 'deportivo', 'plaza'];
@@ -106,7 +107,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/areas/:id — eliminar área y registros relacionados
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', soloPHP, async (req, res) => {
     const id_area = parseInt(req.params.id);
     if (!id_area) return res.status(400).json({ ok: false });
     try {

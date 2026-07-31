@@ -1,5 +1,6 @@
-const router = require('express').Router();
-const db = require('../db');
+const router  = require('express').Router();
+const db      = require('../db');
+const soloPHP = require('../middleware/solo_php');
 
 // GET /api/usuarios — lista de usuarios con conteo de reportes
 router.get('/', async (req, res) => {
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // PUT /api/usuarios/:id/rol — cambiar rol
-router.put('/:id/rol', async (req, res) => {
+router.put('/:id/rol', soloPHP, async (req, res) => {
     const { rol } = req.body;
     const validos = ['usuario', 'admin'];
     if (!validos.includes(rol)) return res.status(400).json({ ok: false, error: 'Rol inválido' });

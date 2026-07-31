@@ -1,5 +1,6 @@
-const router = require('express').Router();
-const db = require('../db');
+const router  = require('express').Router();
+const db      = require('../db');
+const soloPHP = require('../middleware/solo_php');
 
 // GET /api/eventos
 router.get('/', async (req, res) => {
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/eventos — crear evento
-router.post('/', async (req, res) => {
+router.post('/', soloPHP, async (req, res) => {
     const { id_usuario, id_area, nombre, fecha, hora } = req.body;
 
     if (!id_usuario || !id_area || !nombre?.trim() || !fecha || !hora) {

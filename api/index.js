@@ -19,4 +19,11 @@ app.use('/api/eventos',     require('./routes/eventos'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`SafePark API corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`SafePark API corriendo en http://localhost:${PORT}`);
+    if (!process.env.API_SECRET) {
+        console.warn('AVISO: API_SECRET no esta configurada. Las operaciones de');
+        console.warn('escritura (crear/borrar areas, cambiar roles) estan ABIERTAS.');
+        console.warn('Configurala antes de exponer el API a internet.');
+    }
+});
