@@ -3,7 +3,10 @@
 --  Copiar y pegar en phpMyAdmin > pestaña SQL
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS safepark_db;
+-- utf8mb4 es obligatorio: los emojis de las reacciones ocupan 4 bytes y no
+-- caben en utf8 normal (que en MySQL es de 3 bytes)
+CREATE DATABASE IF NOT EXISTS safepark_db
+    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE safepark_db;
 
 -- ------------------------------------------------------------
@@ -26,6 +29,8 @@ CREATE TABLE IF NOT EXISTS AREA (
     id_area    INT          PRIMARY KEY AUTO_INCREMENT,
     nombre     VARCHAR(100) NOT NULL,
     colonia    VARCHAR(100) DEFAULT NULL,
+    direccion  VARCHAR(200) DEFAULT NULL,
+    horario    VARCHAR(100) DEFAULT NULL,
     tipo       ENUM('parque','deportivo','plaza') DEFAULT 'parque',
     lat        DECIMAL(10,7) DEFAULT NULL,
     lng        DECIMAL(10,7) DEFAULT NULL,
@@ -56,6 +61,7 @@ CREATE TABLE IF NOT EXISTS REPORTE (
     descripcion TEXT DEFAULT NULL,
     estado      ENUM('pendiente','en_proceso','resuelto')  DEFAULT 'pendiente',
     fecha       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    foto        VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_area)    REFERENCES AREA(id_area)       ON DELETE CASCADE
 );
@@ -84,6 +90,41 @@ CREATE TABLE IF NOT EXISTS EVENTO_ASISTENTE (
     PRIMARY KEY (id_evento, id_usuario),
     FOREIGN KEY (id_evento)  REFERENCES EVENTO(id_evento)   ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE
+);
+
+-- ------------------------------------------------------------
+--  COMENTARIO
+--  Pertenece a un reporte O a un evento — el otro queda en NULL.
+--  Por eso el API compara con <=> (igualdad que sí funciona con NULL).
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS COMENTARIO (
+    id_comentario INT      PRIMARY KEY AUTO_INCREMENT,
+    id_usuario    INT      NOT NULL,
+    id_reporte    INT      DEFAULT NULL,
+    id_evento     INT      DEFAULT NULL,
+    texto         TEXT     NOT NULL,
+    fecha         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)  ON DELETE CASCADE,
+    FOREIGN KEY (id_reporte) REFERENCES REPORTE(id_reporte)  ON DELETE CASCADE,
+    FOREIGN KEY (id_evento)  REFERENCES EVENTO(id_evento)    ON DELETE CASCADE,
+    INDEX idx_comentario_destino (id_reporte, id_evento)
+);
+
+-- ------------------------------------------------------------
+--  REACCION
+--  Igual que COMENTARIO: cuelga de un reporte o de un evento.
+--  emoji va en utf8mb4 porque son caracteres de 4 bytes.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS REACCION (
+    id_reaccion INT         PRIMARY KEY AUTO_INCREMENT,
+    id_usuario  INT         NOT NULL,
+    id_reporte  INT         DEFAULT NULL,
+    id_evento   INT         DEFAULT NULL,
+    emoji       VARCHAR(20) CHARACTER SET utf8mb4 NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)  ON DELETE CASCADE,
+    FOREIGN KEY (id_reporte) REFERENCES REPORTE(id_reporte)  ON DELETE CASCADE,
+    FOREIGN KEY (id_evento)  REFERENCES EVENTO(id_evento)    ON DELETE CASCADE,
+    INDEX idx_reaccion_destino (id_reporte, id_evento)
 );
 
 -- ============================================================

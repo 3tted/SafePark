@@ -29,12 +29,14 @@ $gradientes = [
 
 $areas_raw = api_get('/areas');
 $areas = array_map(fn($a) => [
-    'id_area' => $a['id'],
-    'nombre'  => $a['nombre'],
-    'colonia' => $a['colonia'],
-    'tipo'    => $a['tipo'],
-    'foto'    => $a['foto'],
-    'score'   => $a['score']
+    'id_area'   => $a['id'],
+    'nombre'    => $a['nombre'],
+    'colonia'   => $a['colonia'],
+    'direccion' => $a['direccion'] ?? '',
+    'horario'   => $a['horario'] ?? '',
+    'tipo'      => $a['tipo'],
+    'foto'      => $a['foto'],
+    'score'     => $a['score']
 ], $areas_raw);
 
 $nav_base   = '../';
@@ -103,6 +105,8 @@ require_once '../includes/navbar.php';
                     data-id="<?= $area['id_area'] ?>"
                     data-nombre="<?= htmlspecialchars($area['nombre'], ENT_QUOTES) ?>"
                     data-colonia="<?= htmlspecialchars($area['colonia'], ENT_QUOTES) ?>"
+                    data-direccion="<?= htmlspecialchars($area['direccion'] ?? '', ENT_QUOTES) ?>"
+                    data-horario="<?= htmlspecialchars($area['horario'] ?? '', ENT_QUOTES) ?>"
                     data-score="<?= $score ?>"
                     data-foto="<?= htmlspecialchars($foto_modal, ENT_QUOTES) ?>"
                     onclick="abrirModalArea(this)">
@@ -145,6 +149,8 @@ require_once '../includes/navbar.php';
                     <div>
                         <div class="modal-area-nombre" id="modal-nombre"></div>
                         <div class="modal-area-meta" id="modal-meta"></div>
+                        <div class="modal-area-meta" id="modal-direccion" style="display:none;"></div>
+                        <div class="modal-area-meta" id="modal-horario" style="display:none;"></div>
                     </div>
                     <div class="semaforo" id="modal-semaforo"></div>
                 </div>
@@ -159,7 +165,10 @@ require_once '../includes/navbar.php';
         </div>
     </div>
 
-    <script>const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;</script>
+    <script>
+        const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
+        const API_URL    = '<?= API_BASE ?>';
+    </script>
     <script src="explorar.js"></script>
     <script>
 let nominatimTimerExplorar = null;

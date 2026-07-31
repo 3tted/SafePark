@@ -25,6 +25,8 @@ $areas_db = array_values(array_map(fn($a) => [
     'id'          => $a['id'],
     'nombre'      => $a['nombre'],
     'colonia'     => $a['colonia'],
+    'direccion'   => $a['direccion'] ?? '',
+    'horario'     => $a['horario'] ?? '',
     'tipo'        => $a['tipo'],
     'lat'         => (float)$a['lat'],
     'lng'         => (float)$a['lng'],
@@ -44,6 +46,8 @@ require_once '../includes/navbar.php';
 
     <?php if ($exito === '1'): ?>
         <div class="msg-ok-mapa">✅ Área agregada correctamente.</div>
+    <?php elseif ($error === 'foto'): ?>
+        <div class="msg-err-mapa">❌ Solo se permiten imágenes JPG, PNG o WEBP (máx. 3MB).</div>
     <?php elseif ($error === '1'): ?>
         <div class="msg-err-mapa">❌ Error al agregar el área.</div>
     <?php endif; ?>
@@ -94,6 +98,16 @@ require_once '../includes/navbar.php';
                 <div class="form-group">
                     <label class="modal-label">Colonia</label>
                     <input class="modal-input" type="text" name="colonia" placeholder="Ej. Col. Centro..." autocomplete="off" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="modal-label">Dirección <span style="font-weight:400;color:var(--muted);">(opcional)</span></label>
+                    <input class="modal-input" type="text" name="direccion" placeholder="Ej. Av. Tecnológico 1340..." autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label class="modal-label">Horario <span style="font-weight:400;color:var(--muted);">(opcional)</span></label>
+                    <input class="modal-input" type="text" name="horario" placeholder="Ej. Lun a Dom 6:00 - 22:00" autocomplete="off">
                 </div>
 
                 <div class="form-group">

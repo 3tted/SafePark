@@ -65,7 +65,7 @@ function reaccionar(triggerEl, emoji) {
     if (id_reporte) payload.id_reporte = id_reporte;
     if (id_evento)  payload.id_evento  = id_evento;
 
-    fetch('http://localhost:3000/api/reacciones', {
+    fetch(API_URL + '/reacciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -109,7 +109,7 @@ function toggleComentarios(btn) {
         if (id_reporte) params.set('id_reporte', id_reporte);
         if (id_evento)  params.set('id_evento', id_evento);
 
-        fetch('http://localhost:3000/api/comentarios?' + params)
+        fetch(API_URL + '/comentarios?' + params)
             .then(r => r.json())
             .then(lista => {
                 const lista_el = section.querySelector('.comentarios-lista');
@@ -146,7 +146,7 @@ function enviarComentario(sendBtn) {
     if (id_evento)  payload.id_evento  = id_evento;
 
     sendBtn.disabled = true;
-    fetch('http://localhost:3000/api/comentarios', {
+    fetch(API_URL + '/comentarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

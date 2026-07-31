@@ -1,15 +1,18 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
+require_once '../includes/fotos.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php'); exit;
 }
 
-$nombre  = trim($_POST['nombre'] ?? '');
-$colonia = trim($_POST['colonia'] ?? '');
-$tipo    = $_POST['tipo'] ?? '';
+$nombre    = trim($_POST['nombre'] ?? '');
+$colonia   = trim($_POST['colonia'] ?? '');
+$direccion = trim($_POST['direccion'] ?? '');
+$horario   = trim($_POST['horario'] ?? '');
+$tipo      = $_POST['tipo'] ?? '';
 $lat     = $_POST['lat'] ?? '';
 $lng     = $_POST['lng'] ?? '';
 $tipos_validos = ['parque', 'deportivo', 'plaza'];
@@ -18,32 +21,22 @@ if (empty($nombre) || empty($colonia) || !in_array($tipo, $tipos_validos) || $la
     header('Location: index.php?error=1'); exit;
 }
 
-// Construir multipart para enviar al API (incluyendo foto si hay)
-$boundary = '----SafeParkBoundary' . uniqid();
-$body = '';
-
-foreach (['nombre' => $nombre, 'colonia' => $colonia, 'tipo' => $tipo, 'lat' => $lat, 'lng' => $lng, 'id_usuario' => $_SESSION['id_usuario']] as $key => $val) {
-    $body .= "--$boundary\r\nContent-Disposition: form-data; name=\"$key\"\r\n\r\n$val\r\n";
+$foto = guardar_foto($_FILES['foto'] ?? null, 'area', 3);
+if ($foto === false) {
+    header('Location: index.php?error=foto'); exit;
 }
 
-if (!empty($_FILES['foto']['name']) && $_FILES['foto']['error'] === 0) {
-    $file_content = file_get_contents($_FILES['foto']['tmp_name']);
-    $filename     = basename($_FILES['foto']['name']);
-    $body .= "--$boundary\r\nContent-Disposition: form-data; name=\"foto\"; filename=\"$filename\"\r\nContent-Type: {$_FILES['foto']['type']}\r\n\r\n$file_content\r\n";
-}
-
-$body .= "--$boundary--\r\n";
-
-$ctx = stream_context_create(['http' => [
-    'method'  => 'POST',
-    'header'  => "Content-Type: multipart/form-data; boundary=$boundary\r\nContent-Length: " . strlen($body),
-    'content' => $body,
-    'timeout' => 10,
-    'ignore_errors' => true
-]]);
-
-$json = @file_get_contents(API_BASE . '/areas', false, $ctx);
-$resultado = json_decode($json, true) ?? ['ok' => false];
+$resultado = api_post('/areas', [
+    'id_usuario' => $_SESSION['id_usuario'],
+    'nombre'     => $nombre,
+    'colonia'    => $colonia,
+    'direccion'  => $direccion,
+    'horario'    => $horario,
+    'tipo'       => $tipo,
+    'lat'        => $lat,
+    'lng'        => $lng,
+    'foto'       => $foto
+]);
 
 header($resultado['ok'] ? 'Location: index.php?exito=1' : 'Location: index.php?error=1');
 exit;

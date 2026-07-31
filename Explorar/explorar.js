@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inicial) filtrarAreas();
 
     // Marcar favoritos actuales del usuario
-    fetch('http://localhost:3000/api/favoritos/' + ID_USUARIO)
+    fetch(API_URL + '/favoritos/' + ID_USUARIO)
         .then(r => r.json())
         .then(ids => {
             ids.forEach(id => {
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleFav(btn) {
     const id_area = btn.dataset.id;
-    fetch('http://localhost:3000/api/favoritos', {
+    fetch(API_URL + '/favoritos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_usuario: ID_USUARIO, id_area })
@@ -158,6 +158,14 @@ function abrirModalArea(el) {
 
     document.getElementById('modal-nombre').textContent = nombre;
     document.getElementById('modal-meta').textContent   = '📍 ' + colonia + ' · ' + (tipo.charAt(0).toUpperCase() + tipo.slice(1));
+
+    // Dirección y horario son opcionales: sólo se muestran si el área los tiene
+    const dirEl = document.getElementById('modal-direccion');
+    const horEl = document.getElementById('modal-horario');
+    dirEl.textContent    = el.dataset.direccion ? '🏠 ' + el.dataset.direccion : '';
+    dirEl.style.display  = el.dataset.direccion ? 'block' : 'none';
+    horEl.textContent    = el.dataset.horario   ? '🕒 ' + el.dataset.horario   : '';
+    horEl.style.display  = el.dataset.horario   ? 'block' : 'none';
     document.getElementById('modal-semaforo').className = 'semaforo ' + semCls;
     document.getElementById('modal-semaforo').textContent = semLbl + ' · ' + score + '/100';
     document.getElementById('modal-mapa-link').href = '../Mapa/index.php?area=' + id;
@@ -175,7 +183,7 @@ function abrirModalArea(el) {
     document.getElementById('modal-area').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    fetch('http://localhost:3000/api/reportes/area/' + id)
+    fetch(API_URL + '/reportes/area/' + id)
         .then(r => r.json())
         .then(reportes => {
             const el = document.getElementById('modal-reportes');

@@ -1,5 +1,7 @@
 <?php
-define('API_BASE', 'http://localhost:3000/api');
+// URL del API. En local usa localhost; al desplegar, define la variable de
+// entorno SAFEPARK_API (ej. https://safepark-api.up.railway.app/api)
+define('API_BASE', getenv('SAFEPARK_API') ?: 'http://localhost:3000/api');
 
 function api_get(string $endpoint): array {
     $url = API_BASE . $endpoint;

@@ -15,6 +15,16 @@
             </div>
 
             <div class="form-group">
+                <label class="modal-label-admin">Dirección <span style="font-weight:400;color:var(--muted);">(opcional)</span></label>
+                <input class="modal-input-admin" type="text" name="direccion" id="edit-direccion" placeholder="Ej. Av. Tecnológico 1340..." autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label class="modal-label-admin">Horario <span style="font-weight:400;color:var(--muted);">(opcional)</span></label>
+                <input class="modal-input-admin" type="text" name="horario" id="edit-horario" placeholder="Ej. Lun a Dom 6:00 - 22:00" autocomplete="off">
+            </div>
+
+            <div class="form-group">
                 <label class="modal-label-admin">Tipo</label>
                 <select class="modal-input-admin" name="tipo" id="edit-tipo" required>
                     <option value="parque">🌳 Parque</option>

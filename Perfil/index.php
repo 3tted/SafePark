@@ -193,7 +193,10 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Mi Perfil · Ciudad Juárez</div>
 
-    <script>const ID_USUARIO = <?= $id ?>;</script>
+    <script>
+        const ID_USUARIO = <?= $id ?>;
+        const API_URL    = '<?= API_BASE ?>';
+    </script>
     <script src="perfil.js"></script>
     <script>
     let favsCargados = false;
@@ -208,7 +211,7 @@ require_once '../includes/navbar.php';
         favsCargados = true;
         const el = document.getElementById('favoritos-contenido');
 
-        fetch('http://localhost:3000/api/favoritos/' + ID_USUARIO)
+        fetch(API_URL + '/favoritos/' + ID_USUARIO)
         .then(r => r.json())
         .then(ids => {
             if (!ids.length) {
@@ -220,7 +223,7 @@ require_once '../includes/navbar.php';
                 </div>`;
                 return;
             }
-            return fetch('http://localhost:3000/api/areas')
+            return fetch(API_URL + '/areas')
             .then(r => r.json())
             .then(areas => {
                 const favs = areas.filter(a => ids.includes(a.id));

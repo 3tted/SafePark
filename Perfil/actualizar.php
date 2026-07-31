@@ -1,6 +1,7 @@
 <?php
 require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/fotos.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -36,24 +37,10 @@ if (!empty($password)) {
 }
 
 // Manejo de foto
-$foto_nombre = null;
-if (!empty($_FILES['foto_perfil']['name'])) {
-    $file     = $_FILES['foto_perfil'];
-    $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $permitidos = ['jpg', 'jpeg', 'png', 'webp'];
-
-    if (!in_array($ext, $permitidos) || $file['size'] > 2 * 1024 * 1024) {
-        header('Location: editar.php?error=foto');
-        exit;
-    }
-
-    $foto_nombre = 'u' . $id . '_' . time() . '.' . $ext;
-    $destino = __DIR__ . '/../Assets/fotos/' . $foto_nombre;
-
-    if (!move_uploaded_file($file['tmp_name'], $destino)) {
-        header('Location: editar.php?error=servidor');
-        exit;
-    }
+$foto_nombre = guardar_foto($_FILES['foto_perfil'] ?? null, 'u' . $id, 2);
+if ($foto_nombre === false) {
+    header('Location: editar.php?error=foto');
+    exit;
 }
 
 // Actualizar en DB

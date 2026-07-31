@@ -40,13 +40,22 @@ areas.forEach(area => {
         ? `<button onclick="abrirEditarArea(${area.id})" style="margin-top:8px;width:100%;padding:6px;background:var(--g2,#2D6A4F);color:white;border:none;border-radius:6px;font-family:Nunito,sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;">✏️ Editar área</button>`
         : '';
 
+    const direccionHtml = area.direccion
+        ? `<div style="color:#6b7280;font-size:0.78rem;margin-bottom:2px;">🏠 ${area.direccion}</div>`
+        : '';
+    const horarioHtml = area.horario
+        ? `<div style="color:#6b7280;font-size:0.78rem;margin-bottom:6px;">🕒 ${area.horario}</div>`
+        : '';
+
     const marker = L.marker([area.lat, area.lng], { icon: icono })
         .addTo(map)
         .bindPopup(`
             <div style="font-family:Nunito,sans-serif;min-width:160px;">
                 ${fotoHtml}
                 <div style="font-weight:900;font-size:1rem;margin-bottom:4px;">${area.nombre}</div>
-                <div style="color:#6b7280;font-size:0.82rem;margin-bottom:8px;">📍 ${area.colonia}</div>
+                <div style="color:#6b7280;font-size:0.82rem;margin-bottom:${direccionHtml||horarioHtml?'4px':'8px'};">📍 ${area.colonia}</div>
+                ${direccionHtml}
+                ${horarioHtml}
                 <div style="background:${color};color:white;border-radius:20px;padding:3px 10px;display:inline-block;font-weight:700;font-size:0.82rem;">
                     ${area.score >= 70 ? '● Seguro' : area.score >= 40 ? '⚠ Precaución' : '✕ Riesgo'} · ${area.score}/100
                 </div>
@@ -145,6 +154,8 @@ function abrirEditarArea(id) {
     document.getElementById('edit-id').value = area.id;
     document.getElementById('edit-nombre').value = area.nombre;
     document.getElementById('edit-colonia').value = area.colonia;
+    document.getElementById('edit-direccion').value = area.direccion || '';
+    document.getElementById('edit-horario').value = area.horario || '';
     document.getElementById('edit-tipo').value = area.tipo;
     document.getElementById('edit-lat').value = area.lat;
     document.getElementById('edit-lng').value = area.lng;
