@@ -12,20 +12,16 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
 requiere_sesion();
 
-$id = $_SESSION['id_usuario'];
-$stmt = $conn->prepare("SELECT nombre, email, foto_perfil FROM USUARIO WHERE id_usuario = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$result = $stmt->get_result();
-$usuario = $result->fetch_assoc();
+$id      = $_SESSION['id_usuario'];
+$usuario = api_get('/usuarios/' . $id);
 
-$nombre     = htmlspecialchars($usuario['nombre']);
-$email      = htmlspecialchars($usuario['email']);
-$foto       = $usuario['foto_perfil'];
+$nombre     = htmlspecialchars($usuario['nombre'] ?? '');
+$email      = htmlspecialchars($usuario['email'] ?? '');
+$foto       = $usuario['foto_perfil'] ?? null;
 $inicial    = strtoupper(mb_substr($nombre, 0, 1));
 
 $error   = $_GET['error']   ?? '';

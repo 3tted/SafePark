@@ -1,8 +1,7 @@
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_admin($conn);
+requiere_admin();
 
 $id_reporte = intval($_POST['id_reporte'] ?? 0);
 $estado     = $_POST['estado'] ?? '';

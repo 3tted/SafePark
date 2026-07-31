@@ -87,22 +87,70 @@
 }
 
 
+/* En móvil la navbar pasa a dos filas: arriba el logo y las acciones de cuenta,
+   abajo la navegación. Los tamaños se reducen para que la primera fila quepa
+   completa — si no, "Cerrar sesión" se va sola a un renglón intermedio y la
+   barra termina ocupando tres filas. */
 @media (max-width: 768px) {
     .navbar {
         display: flex;
         flex-wrap: wrap;
+        align-items: center;
         height: auto;
-        padding: 12px 16px;
-        gap: 12px;
+        padding: 10px 12px;
+        gap: 8px 6px;
     }
 
-    .nav-links {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-    }
+    /* Logo más compacto para dejarle espacio a los botones */
+    .nav-logo img { height: 32px; width: auto; }
+    .nav-logo-text { font-size: 15px; }
 
     .nav-right {
         margin-left: auto;
+        gap: 4px;
+    }
+
+    .nav-right .nav-link,
+    .btn-nav {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .btn-nav { border-width: 1.5px; }
+
+    /* La navegación baja a su propia fila y puede deslizarse si no cabe */
+    .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 2px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;          /* Firefox */
+        -webkit-overflow-scrolling: touch;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
+
+    .nav-links .nav-link {
+        padding: 6px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+}
+
+/* Pantallas muy angostas: el nombre junto a los tres botones de cuenta ya no
+   cabe en una fila, así que se deja solo el escudo. Sigue identificando la
+   aplicación y evita que la barra crezca a tres renglones. */
+@media (max-width: 360px) {
+    .nav-logo-text { display: none; }
+    .nav-logo img  { height: 30px; }
+
+    .nav-right { gap: 5px; }
+
+    .nav-right .nav-link,
+    .btn-nav {
+        padding: 4px 9px;
+        font-size: 11px;
     }
 }

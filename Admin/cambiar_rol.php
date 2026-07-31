@@ -1,8 +1,7 @@
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_admin($conn);
+requiere_admin();
 
 $id_usuario = intval($_POST['id_usuario'] ?? 0);
 $nuevo_rol  = $_POST['rol'] ?? '';

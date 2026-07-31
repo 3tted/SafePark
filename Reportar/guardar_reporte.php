@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
+require_once '../includes/fotos.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -16,23 +17,9 @@ if (empty($tipo) || empty($descripcion) || !$id_area || !in_array($tipo, $tipos_
     header('Location: index.php?error=campos'); exit;
 }
 
-// Manejo de foto
-$foto_nombre = null;
-if (!empty($_FILES['foto']['name'])) {
-    $file = $_FILES['foto'];
-    $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $permitidos = ['jpg', 'jpeg', 'png', 'webp'];
-
-    if (!in_array($ext, $permitidos) || $file['size'] > 5 * 1024 * 1024) {
-        header('Location: index.php?error=foto'); exit;
-    }
-
-    $foto_nombre = 'r' . $_SESSION['id_usuario'] . '_' . time() . '.' . $ext;
-    $destino = __DIR__ . '/../Assets/fotos/' . $foto_nombre;
-
-    if (!move_uploaded_file($file['tmp_name'], $destino)) {
-        header('Location: index.php?error=servidor'); exit;
-    }
+$foto_nombre = guardar_foto($_FILES['foto'] ?? null, 'r' . $_SESSION['id_usuario'], 5);
+if ($foto_nombre === false) {
+    header('Location: index.php?error=foto'); exit;
 }
 
 $resultado = api_post('/reportes', [

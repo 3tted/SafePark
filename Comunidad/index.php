@@ -11,14 +11,22 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
-$reportes_api = api_get('/reportes');
-$eventos_api  = api_get('/eventos');
-$usuarios_api = api_get('/usuarios');
+// Las cinco consultas se lanzan juntas: en fila tardaban ~4s, así ~0.8s
+$datos = api_get_multi([
+    'reportes'   => '/reportes',
+    'eventos'    => '/eventos',
+    'usuarios'   => '/usuarios',
+    'reacciones' => '/reacciones/agrupadas',
+    'areas'      => '/areas',
+]);
+
+$reportes_api = $datos['reportes'];
+$eventos_api  = $datos['eventos'];
+$usuarios_api = $datos['usuarios'];
 
 $total_usuarios = count($usuarios_api);
 $total_reportes = count($reportes_api);
@@ -39,10 +47,9 @@ foreach ($eventos_api as $e) {
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
 $actividad = array_slice($actividad, 0, 10);
 
-// Reacciones agrupadas
+// Reacciones agrupadas, indexadas por publicación para pintarlas en el feed
 $reacciones_db = [];
-$res_r = $conn->query("SELECT id_reporte, id_evento, emoji, COUNT(*) AS total FROM REACCION GROUP BY id_reporte, id_evento, emoji");
-while ($row = $res_r->fetch_assoc()) {
+foreach ($datos['reacciones'] as $row) {
     $key = $row['id_reporte'] ? 'r_'.$row['id_reporte'] : 'e_'.$row['id_evento'];
     $reacciones_db[$key][$row['emoji']] = (int)$row['total'];
 }
@@ -51,7 +58,7 @@ $eventos_sidebar = array_slice($eventos_api, 0, 3);
 $top_contribuidores = array_slice($usuarios_api, 0, 4);
 
 // Áreas para el modal (solo necesitamos id y nombre)
-$areas_modal_arr = api_get('/areas');
+$areas_modal_arr = $datos['areas'];
 
 $labels_tipo = ['incidente' => 'reportó un incidente', 'condicion' => 'reportó la condición', 'sugerencia' => 'hizo una sugerencia'];
 
@@ -350,7 +357,10 @@ require_once '../includes/navbar.php';
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
-    <script>const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;</script>
+    <script>
+        const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
+        const API_URL    = '<?= API_BASE ?>';
+    </script>
     <script src="comunidad.js"></script>
 </body>
 </html>

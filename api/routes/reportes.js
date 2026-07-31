@@ -1,5 +1,6 @@
-const router = require('express').Router();
-const db = require('../db');
+const router  = require('express').Router();
+const db      = require('../db');
+const soloPHP = require('../middleware/solo_php');
 
 // GET /api/reportes — todos los reportes recientes
 router.get('/', async (req, res) => {
@@ -41,7 +42,7 @@ router.get('/usuario/:id', async (req, res) => {
 });
 
 // PUT /api/reportes/:id — actualizar estado
-router.put('/:id', async (req, res) => {
+router.put('/:id', soloPHP, async (req, res) => {
     const { estado } = req.body;
     const validos = ['pendiente', 'en_proceso', 'resuelto'];
     if (!validos.includes(estado)) return res.status(400).json({ ok: false, error: 'Estado inválido' });
@@ -54,7 +55,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // POST /api/reportes — crear reporte
-router.post('/', async (req, res) => {
+router.post('/', soloPHP, async (req, res) => {
     const { id_usuario, id_area, tipo, descripcion, foto } = req.body;
     const tipos_validos = ['incidente', 'condicion', 'sugerencia'];
 

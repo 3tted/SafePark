@@ -19,8 +19,13 @@ $id_usuario = $_SESSION['id_usuario'];
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';
 
-$areas        = api_get('/areas');
-$mis_reportes = array_slice(api_get('/reportes/usuario/' . $id_usuario), 0, 5);
+$datos = api_get_multi([
+    'areas'    => '/areas',
+    'reportes' => '/reportes/usuario/' . $id_usuario,
+]);
+
+$areas        = $datos['areas'];
+$mis_reportes = array_slice($datos['reportes'], 0, 5);
 
 $iconos_tipo  = ['incidente' => '🚨', 'condicion' => '🏚️', 'sugerencia' => '💡'];
 $labels_tipo  = ['incidente' => 'Incidente de seguridad', 'condicion' => 'Condición del área', 'sugerencia' => 'Sugerencia'];

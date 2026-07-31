@@ -1,6 +1,7 @@
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
+require_once '../includes/api.php';
+require_once '../includes/fotos.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -8,74 +9,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$id       = $_SESSION['id_usuario'];
-$nombre   = trim($_POST['nombre']);
-$email    = trim($_POST['email']);
-$password = $_POST['password'];
-$confirmar = $_POST['confirmar'];
+$id        = $_SESSION['id_usuario'];
+$nombre    = trim($_POST['nombre'] ?? '');
+$email     = trim($_POST['email'] ?? '');
+$password  = $_POST['password'] ?? '';
+$confirmar = $_POST['confirmar'] ?? '';
 
-// Verificar email duplicado (excluyendo el propio usuario)
-$check = $conn->prepare("SELECT id_usuario FROM USUARIO WHERE email = ? AND id_usuario != ?");
-$check->bind_param("si", $email, $id);
-$check->execute();
-$check->store_result();
-if ($check->num_rows > 0) {
-    header('Location: editar.php?error=email');
+if (!empty($password) && $password !== $confirmar) {
+    header('Location: editar.php?error=passwords');
     exit;
 }
 
-// Validar contraseñas si se quiere cambiar
-if (!empty($password)) {
-    if ($password !== $confirmar) {
-        header('Location: editar.php?error=passwords');
-        exit;
-    }
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-} else {
-    $hash = null;
+// La foto la guarda PHP; al API solo viaja el nombre del archivo
+$foto_nombre = guardar_foto($_FILES['foto_perfil'] ?? null, 'u' . $id, 2);
+if ($foto_nombre === false) {
+    header('Location: editar.php?error=foto');
+    exit;
 }
 
-// Manejo de foto
-$foto_nombre = null;
-if (!empty($_FILES['foto_perfil']['name'])) {
-    $file     = $_FILES['foto_perfil'];
-    $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $permitidos = ['jpg', 'jpeg', 'png', 'webp'];
+$datos = ['nombre' => $nombre, 'email' => $email];
+if (!empty($password)) $datos['password']    = $password;
+if ($foto_nombre)      $datos['foto_perfil'] = $foto_nombre;
 
-    if (!in_array($ext, $permitidos) || $file['size'] > 2 * 1024 * 1024) {
-        header('Location: editar.php?error=foto');
-        exit;
-    }
+$r = api_put('/usuarios/' . $id, $datos);
 
-    $foto_nombre = 'u' . $id . '_' . time() . '.' . $ext;
-    $destino = __DIR__ . '/../Assets/fotos/' . $foto_nombre;
-
-    if (!move_uploaded_file($file['tmp_name'], $destino)) {
-        header('Location: editar.php?error=servidor');
-        exit;
-    }
-}
-
-// Actualizar en DB
-if ($hash && $foto_nombre) {
-    $stmt = $conn->prepare("UPDATE USUARIO SET nombre=?, email=?, contrasena_hash=?, foto_perfil=? WHERE id_usuario=?");
-    $stmt->bind_param("ssssi", $nombre, $email, $hash, $foto_nombre, $id);
-} elseif ($hash) {
-    $stmt = $conn->prepare("UPDATE USUARIO SET nombre=?, email=?, contrasena_hash=? WHERE id_usuario=?");
-    $stmt->bind_param("sssi", $nombre, $email, $hash, $id);
-} elseif ($foto_nombre) {
-    $stmt = $conn->prepare("UPDATE USUARIO SET nombre=?, email=?, foto_perfil=? WHERE id_usuario=?");
-    $stmt->bind_param("sssi", $nombre, $email, $foto_nombre, $id);
-} else {
-    $stmt = $conn->prepare("UPDATE USUARIO SET nombre=?, email=? WHERE id_usuario=?");
-    $stmt->bind_param("ssi", $nombre, $email, $id);
-}
-
-if ($stmt->execute()) {
+if (!empty($r['ok'])) {
     $_SESSION['nombre'] = $nombre;
     header('Location: editar.php?exito=1');
-} else {
-    header('Location: editar.php?error=servidor');
+    exit;
 }
+
+$destino = ($r['error'] ?? '') === 'email_duplicado' ? 'email' : 'servidor';
+header('Location: editar.php?error=' . $destino);
 exit;
 ?>

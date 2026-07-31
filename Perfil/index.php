@@ -11,31 +11,31 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
 
-// Datos del usuario desde la DB (auth sigue en PHP)
-$stmt = $conn->prepare("SELECT nombre, email, fecha_registro, foto_perfil FROM USUARIO WHERE id_usuario = ?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$usuario = $stmt->get_result()->fetch_assoc();
+// Perfil, reportes y favoritos se piden en paralelo
+$datos = api_get_multi([
+    'perfil'    => '/usuarios/' . $id,
+    'reportes'  => '/reportes/usuario/' . $id,
+    'favoritos' => '/favoritos/' . $id,
+]);
 
-$nombre  = htmlspecialchars($usuario['nombre']);
-$email   = htmlspecialchars($usuario['email']);
-$fecha   = date('d/m/Y', strtotime($usuario['fecha_registro']));
+$perfil_api = $datos['perfil'];
+
+$nombre  = htmlspecialchars($perfil_api['nombre'] ?? '');
+$email   = htmlspecialchars($perfil_api['email'] ?? '');
+$fecha   = date('d/m/Y', strtotime($perfil_api['fecha_registro'] ?? 'now'));
 $inicial = strtoupper(mb_substr($nombre, 0, 1));
-$foto    = $usuario['foto_perfil'] ?? null;
+$foto    = $perfil_api['foto_perfil'] ?? null;
 
-// Puntos y reportes desde la API
-$perfil_api = api_get('/usuarios/' . $id);
 $puntos_usuario         = $perfil_api['puntos'] ?? 0;
 $total_reportes_usuario = array_sum(array_column($perfil_api['reportes'] ?? [], 'total'));
-$mis_reportes           = api_get('/reportes/usuario/' . $id);
-$total_favoritos        = count(api_get('/favoritos/' . $id));
+$mis_reportes           = $datos['reportes'];
+$total_favoritos        = count($datos['favoritos']);
 
 $nav_base   = '../';
 $nav_active = 'perfil';
@@ -193,7 +193,10 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Mi Perfil · Ciudad Juárez</div>
 
-    <script>const ID_USUARIO = <?= $id ?>;</script>
+    <script>
+        const ID_USUARIO = <?= $id ?>;
+        const API_URL    = '<?= API_BASE ?>';
+    </script>
     <script src="perfil.js"></script>
     <script>
     let favsCargados = false;
@@ -208,7 +211,7 @@ require_once '../includes/navbar.php';
         favsCargados = true;
         const el = document.getElementById('favoritos-contenido');
 
-        fetch('http://localhost:3000/api/favoritos/' + ID_USUARIO)
+        fetch(API_URL + '/favoritos/' + ID_USUARIO)
         .then(r => r.json())
         .then(ids => {
             if (!ids.length) {
@@ -220,7 +223,7 @@ require_once '../includes/navbar.php';
                 </div>`;
                 return;
             }
-            return fetch('http://localhost:3000/api/areas')
+            return fetch(API_URL + '/areas')
             .then(r => r.json())
             .then(areas => {
                 const favs = areas.filter(a => ids.includes(a.id));

@@ -1,29 +1,15 @@
-const router = require('express').Router();
-const db     = require('../db');
-const multer = require('multer');
-const path   = require('path');
+const router    = require('express').Router();
+const db        = require('../db');
+const soloPHP   = require('../middleware/solo_php');
 
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, '../../Assets/fotos'),
-    filename: (req, file, cb) => {
-        const ext  = path.extname(file.originalname).toLowerCase();
-        const name = `area_${Date.now()}_${Math.floor(Math.random()*9000+1000)}${ext}`;
-        cb(null, name);
-    }
-});
-const upload = multer({
-    storage,
-    limits: { fileSize: 3 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        const permitidos = ['.jpg', '.jpeg', '.png', '.webp'];
-        cb(null, permitidos.includes(path.extname(file.originalname).toLowerCase()));
-    }
-});
+// Las fotos las guarda PHP en Assets/fotos/ y aquí sólo se registra el nombre
+// del archivo. Así la imagen vive en el mismo servidor que la sirve.
 
 // GET /api/areas
 router.get('/', async (req, res) => {
     const [rows] = await db.query(`
-        SELECT a.id_area, a.nombre, a.colonia, a.tipo, a.lat, a.lng, a.foto, a.id_usuario,
+        SELECT a.id_area, a.nombre, a.colonia, a.direccion, a.horario,
+               a.tipo, a.lat, a.lng, a.foto, a.id_usuario,
             COALESCE(SUM(r.tipo = 'incidente'), 0) AS n_incidentes,
             COALESCE(SUM(r.tipo = 'condicion'), 0) AS n_condiciones,
             COALESCE(SUM(r.tipo = 'sugerencia'), 0) AS n_sugerencias
@@ -38,6 +24,8 @@ router.get('/', async (req, res) => {
             id:          a.id_area,
             nombre:      a.nombre,
             colonia:     a.colonia ?? '',
+            direccion:   a.direccion ?? '',
+            horario:     a.horario ?? '',
             tipo:        a.tipo ?? 'parque',
             lat:         parseFloat(a.lat),
             lng:         parseFloat(a.lng),
@@ -57,27 +45,31 @@ router.get('/:id', async (req, res) => {
     res.json(rows[0]);
 });
 
-// POST /api/areas — crear área (con foto opcional)
-router.post('/', upload.single('foto'), async (req, res) => {
-    const { id_usuario, nombre, colonia, tipo, lat, lng } = req.body;
+// POST /api/areas — crear área (foto opcional, ya guardada por PHP)
+router.post('/', soloPHP, async (req, res) => {
+    const { id_usuario, nombre, colonia, direccion, horario, tipo, lat, lng, foto } = req.body;
     const tipos_validos = ['parque', 'deportivo', 'plaza'];
 
     if (!id_usuario || !nombre?.trim() || !colonia?.trim() || !tipos_validos.includes(tipo) || !lat || !lng) {
         return res.status(400).json({ ok: false, error: 'Datos inválidos' });
     }
 
-    const foto = req.file?.filename ?? null;
-
-    await db.query(
-        'INSERT INTO AREA (nombre, colonia, tipo, lat, lng, id_usuario, foto) VALUES (?,?,?,?,?,?,?)',
-        [nombre.trim(), colonia.trim(), tipo, lat, lng, id_usuario, foto]
-    );
-    res.json({ ok: true });
+    try {
+        await db.query(
+            'INSERT INTO AREA (nombre, colonia, direccion, horario, tipo, lat, lng, id_usuario, foto) VALUES (?,?,?,?,?,?,?,?,?)',
+            [nombre.trim(), colonia.trim(), direccion?.trim() || null, horario?.trim() || null,
+             tipo, lat, lng, id_usuario, foto || null]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('POST /areas error:', err.message);
+        res.status(500).json({ ok: false, error: err.message });
+    }
 });
 
-// PUT /api/areas/:id — actualizar área
-router.put('/:id', upload.single('foto'), async (req, res) => {
-    const { id_usuario, nombre, colonia, tipo, lat, lng } = req.body;
+// PUT /api/areas/:id — actualizar área (foto opcional, ya guardada por PHP)
+router.put('/:id', soloPHP, async (req, res) => {
+    const { id_usuario, nombre, colonia, direccion, horario, tipo, lat, lng, foto } = req.body;
     const id_area = parseInt(req.params.id);
     const tipos_validos = ['parque', 'deportivo', 'plaza'];
 
@@ -96,22 +88,26 @@ router.put('/:id', upload.single('foto'), async (req, res) => {
         return res.status(403).json({ ok: false, error: 'Sin permiso' });
     }
 
-    if (req.file) {
+    const campos = [nombre.trim(), colonia.trim(), direccion?.trim() || null,
+                    horario?.trim() || null, tipo, lat, lng];
+
+    // Sin foto nueva se conserva la que ya tenía
+    if (foto) {
         await db.query(
-            'UPDATE AREA SET nombre=?, colonia=?, tipo=?, lat=?, lng=?, foto=? WHERE id_area=?',
-            [nombre.trim(), colonia.trim(), tipo, lat, lng, req.file.filename, id_area]
+            'UPDATE AREA SET nombre=?, colonia=?, direccion=?, horario=?, tipo=?, lat=?, lng=?, foto=? WHERE id_area=?',
+            [...campos, foto, id_area]
         );
     } else {
         await db.query(
-            'UPDATE AREA SET nombre=?, colonia=?, tipo=?, lat=?, lng=? WHERE id_area=?',
-            [nombre.trim(), colonia.trim(), tipo, lat, lng, id_area]
+            'UPDATE AREA SET nombre=?, colonia=?, direccion=?, horario=?, tipo=?, lat=?, lng=? WHERE id_area=?',
+            [...campos, id_area]
         );
     }
     res.json({ ok: true });
 });
 
 // DELETE /api/areas/:id — eliminar área y registros relacionados
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', soloPHP, async (req, res) => {
     const id_area = parseInt(req.params.id);
     if (!id_area) return res.status(400).json({ ok: false });
     try {

@@ -11,20 +11,26 @@
 <body>
 
 <?php
-require_once '../database/conexion.php';
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_admin($conn);
+requiere_admin();
 
-$stats           = api_get('/areas/stats/resumen');
+$datos = api_get_multi([
+    'stats'    => '/areas/stats/resumen',
+    'reportes' => '/reportes',
+    'usuarios' => '/usuarios',
+    'areas'    => '/areas',
+]);
+
+$stats           = $datos['stats'];
 $total_usuarios  = $stats['total_usuarios'] ?? 0;
 $total_reportes  = $stats['total_reportes'] ?? 0;
 $reportes_pendientes = $stats['pendientes'] ?? 0;
 $total_areas     = $stats['total_areas'] ?? 0;
 
-$reportes    = api_get('/reportes');
-$usuarios    = api_get('/usuarios');
-$areas_admin = api_get('/areas');
+$reportes    = $datos['reportes'];
+$usuarios    = $datos['usuarios'];
+$areas_admin = $datos['areas'];
 
 $exito = $_GET['exito'] ?? '';
 $error = $_GET['error'] ?? '';
@@ -44,7 +50,9 @@ require_once '../includes/navbar.php';
     </div>
 
     <?php if ($exito === '1'): ?>
-        <div class="msg-ok-global">✅ Reporte actualizado correctamente.</div>
+        <div class="msg-ok-global">✅ Cambios guardados correctamente.</div>
+    <?php elseif ($error === 'foto'): ?>
+        <div class="msg-err-global">❌ Solo se permiten imágenes JPG, PNG o WEBP (máx. 3MB).</div>
     <?php elseif ($error === 'servidor'): ?>
         <div class="msg-err-global">❌ Error del servidor, intenta de nuevo.</div>
     <?php endif; ?>
@@ -195,7 +203,7 @@ require_once '../includes/navbar.php';
                         <td><?= htmlspecialchars($a['tipo'] ?? '—') ?></td>
                         <td style="font-size:0.78rem;color:var(--muted);"><?= $a['lat'] ?? '—' ?>, <?= $a['lng'] ?? '—' ?></td>
                         <td>
-                            <button class="btn-actualizar" onclick='abrirEditarArea(<?= json_encode(['id_area'=>$a['id'],'nombre'=>$a['nombre'],'colonia'=>$a['colonia'],'tipo'=>$a['tipo'],'lat'=>$a['lat'],'lng'=>$a['lng']]) ?>)'>✏️ Editar</button>
+                            <button class="btn-actualizar" onclick='abrirEditarArea(<?= htmlspecialchars(json_encode(['id_area'=>$a['id'],'nombre'=>$a['nombre'],'colonia'=>$a['colonia'],'direccion'=>$a['direccion']??'','horario'=>$a['horario']??'','tipo'=>$a['tipo'],'lat'=>$a['lat'],'lng'=>$a['lng']]), ENT_QUOTES) ?>)'>✏️ Editar</button>
                             <form action="eliminar_area.php" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar esta área?')">
                                 <input type="hidden" name="id_area" value="<?= $a['id'] ?>">
                                 <button class="btn-actualizar" style="background:var(--risk);" type="submit">🗑️</button>

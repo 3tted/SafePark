@@ -1,11 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-$es_admin = false;
-if (isset($_SESSION['id_usuario'])) {
-    require_once __DIR__ . '/../database/conexion.php';
-    $es_admin = es_admin($conn, $_SESSION['id_usuario']);
-}
+$es_admin = isset($_SESSION['id_usuario']) && es_admin();
 ?>
 <nav class="navbar">
     <a class="nav-logo" href="<?= $nav_base ?>Home/index.php">
@@ -19,7 +15,7 @@ if (isset($_SESSION['id_usuario'])) {
         <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/index.php">Reportar</a>
         <a class="nav-link <?= ($nav_active==='comunidad') ? 'active':'' ?>" href="<?= $nav_base ?>Comunidad/index.php">Comunidad</a>
     </div>
-    <div class="nav-right" style="display:flex;align-items:center;gap:10px;">
+    <div class="nav-right">
         <?php if ($es_admin): ?>
             <a class="nav-link" href="<?= $nav_base ?>Admin/index.php" style="background:var(--g4);color:var(--g1);font-weight:800;">⚙️ Admin</a>
         <?php endif; ?>
