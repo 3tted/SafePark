@@ -212,6 +212,13 @@ function previewFotoMapa(input, placeholderId, previewId) {
 
 renderLista(marcadores);
 
+// Leaflet calcula el tamaño del mapa al crearlo. En móvil el contenedor todavía
+// no tiene su altura definitiva en ese momento, así que los tiles nunca se
+// dibujan y el mapa se ve en blanco. invalidateSize() lo obliga a recalcular.
+setTimeout(() => map.invalidateSize(), 200);
+window.addEventListener('resize', () => map.invalidateSize());
+window.addEventListener('orientationchange', () => setTimeout(() => map.invalidateSize(), 300));
+
 // Si viene de Explorar con ?area=id, centra el mapa y abre el popup de esa área
 // setTimeout de 300ms para que Leaflet termine de renderizar los tiles antes de hacer setView
 const params = new URLSearchParams(window.location.search);

@@ -403,10 +403,18 @@
     }
     .mapa-panel {
         width: 100%;
-        max-height: 350px;
+        max-height: 40vh;
     }
     .mapa-contenedor {
-        height: 400px;
+        /* "flex: none" es imprescindible: la regla base pone flex:1, y en una
+           columna flexible eso calcula la altura por reparto e ignora height,
+           dejando el contenedor en unos pocos pixeles y el mapa invisible. */
+        flex: none;
+        height: 60vh;
+        min-height: 300px;
+    }
+    #map {
+        height: 100%;
     }
     #resultado iframe {
         position: relative;

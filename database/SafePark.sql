@@ -113,14 +113,20 @@ CREATE TABLE IF NOT EXISTS COMENTARIO (
 -- ------------------------------------------------------------
 --  REACCION
 --  Igual que COMENTARIO: cuelga de un reporte o de un evento.
---  emoji va en utf8mb4 porque son caracteres de 4 bytes.
+--
+--  La columna emoji lleva utf8mb4_bin a propósito. Con la colación habitual
+--  (utf8mb4_general_ci) MySQL considera que todos los emojis son el mismo
+--  carácter: al buscar 😍 encuentra un 😀 guardado, cree que ya existe y lo
+--  borra en vez de agregar el nuevo. Resultado: solo se conserva una reacción
+--  por usuario y el GROUP BY mezcla emojis distintos en un solo conteo.
+--  utf8mb4_bin compara byte a byte, que es lo que hace falta aquí.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS REACCION (
     id_reaccion INT         PRIMARY KEY AUTO_INCREMENT,
     id_usuario  INT         NOT NULL,
     id_reporte  INT         DEFAULT NULL,
     id_evento   INT         DEFAULT NULL,
-    emoji       VARCHAR(20) CHARACTER SET utf8mb4 NOT NULL,
+    emoji       VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)  ON DELETE CASCADE,
     FOREIGN KEY (id_reporte) REFERENCES REPORTE(id_reporte)  ON DELETE CASCADE,
     FOREIGN KEY (id_evento)  REFERENCES EVENTO(id_evento)    ON DELETE CASCADE,

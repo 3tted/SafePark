@@ -6,7 +6,7 @@
     <title>Mapa - SafePark</title>
     <link rel="icon" href="../Assets/logo.png">
     <link rel="stylesheet" href="../CSS/styles.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
@@ -146,6 +146,6 @@ require_once '../includes/navbar.php';
     <script>
         const AREAS_DB = <?= json_encode($areas_db) ?>;
     </script>
-    <script src="archivo.js?v=5"></script>
+    <script src="archivo.js?v=6"></script>
 </body>
 </html>

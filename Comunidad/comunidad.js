@@ -21,11 +21,17 @@ function togglePicker(btn) {
     cerrarPicker();
     pickerActivo = btn;
 
+    // El botón se guarda en una constante local en vez de leer pickerActivo al
+    // elegir el emoji. En pantallas táctiles el detector de "clic fuera" puede
+    // adelantarse a la selección y dejar pickerActivo en null; entonces la
+    // reacción fallaba en silencio y había que tocar dos veces.
+    const destino = btn;
+
     pickerEl = new EmojiMart.Picker({
         locale: 'es',
         theme: 'light',
         onEmojiSelect: (emoji) => {
-            reaccionar(pickerActivo, emoji.native);
+            reaccionar(destino, emoji.native);
             cerrarPicker();
         }
     });
@@ -52,13 +58,20 @@ function cerrarPicker() {
 }
 
 document.addEventListener('click', e => {
-    if (pickerActivo && !e.target.closest('em-emoji-picker') && !e.target.classList.contains('reaction-add')) {
+    if (!pickerActivo) return;
+    // e.target puede no ser un elemento (nodo de texto); sin esta comprobación
+    // el detector truena y deja el picker pegado en pantalla.
+    const el = e.target instanceof Element ? e.target : null;
+    if (!el) return;
+    if (!el.closest('em-emoji-picker') && !el.classList.contains('reaction-add')) {
         cerrarPicker();
     }
 });
 
 function reaccionar(triggerEl, emoji) {
-    const reactionsBar = triggerEl.closest('.feed-reactions');
+    const reactionsBar = triggerEl && triggerEl.closest ? triggerEl.closest('.feed-reactions') : null;
+    if (!reactionsBar) return;   // el botón ya no está en la página
+
     const { id_reporte, id_evento } = getIds(reactionsBar);
 
     const payload = { id_usuario: ID_USUARIO, emoji };
