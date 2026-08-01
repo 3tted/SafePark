@@ -297,3 +297,124 @@
     margin-top: 32px;
     border-top: 1px solid #e5e7eb;
 }
+
+/* ===== Móvil =====
+   La página no tenía ninguna regla responsive: el layout de dos columnas
+   (300px + resto) desbordaba la pantalla y el encabezado quedaba apretado. */
+@media (max-width: 768px) {
+    .perfil-hero {
+        padding: 24px 16px;
+        gap: 16px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .perfil-avatar {
+        width: 72px;
+        height: 72px;
+        font-size: 1.9rem;
+    }
+
+    .perfil-hero-info { flex: 1 1 100%; }
+    .perfil-hero-info h2 { font-size: 1.3rem; }
+
+    .perfil-badges { justify-content: center; }
+
+    /* Las tres cifras se reparten el ancho en vez de irse de lado */
+    .perfil-stats {
+        width: 100%;
+        justify-content: space-around;
+        gap: 12px;
+    }
+    .pstat-n { font-size: 1.4rem; }
+    .pstat-l { font-size: 0.72rem; }
+
+    /* De dos columnas a una sola */
+    .perfil-layout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin: 16px auto;
+        padding: 0 12px;
+    }
+
+    /* Las pestañas pueden deslizarse si no caben */
+    .perfil-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+    .perfil-tabs::-webkit-scrollbar { display: none; }
+    .perfil-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        padding: 10px 14px;
+    }
+
+    .ptab-panel { padding: 16px; }
+    .pcard      { padding: 16px; }
+
+    /* Etiqueta y valor uno debajo del otro para que quepan los correos largos */
+    .pinfo-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .pinfo-val { word-break: break-word; }
+}
+
+/* ===== Pestaña de actividad ===== */
+.actividad-lista {
+    display: flex;
+    flex-direction: column;
+}
+
+.act-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+.act-item:last-child { border-bottom: none; }
+
+.act-icono {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.act-cuerpo { min-width: 0; }   /* deja que el texto largo se corte en vez de estirar la fila */
+
+.act-titulo {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.act-area {
+    color: var(--g1);
+    font-weight: 800;
+}
+
+.act-detalle {
+    font-size: 0.85rem;
+    color: #374151;
+    margin-top: 3px;
+    word-break: break-word;
+}
+
+.act-fecha {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+    .act-icono { width: 32px; height: 32px; font-size: 0.95rem; }
+    .act-titulo, .act-detalle { font-size: 0.8rem; }
+}

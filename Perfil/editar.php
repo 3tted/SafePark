@@ -6,7 +6,7 @@
     <title>Editar Perfil - SafePark</title>
     <link rel="icon" href="../Assets/logo.png">
     <link rel="stylesheet" href="../CSS/styles.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <link rel="stylesheet" href="editar.css">
 </head>
 <body>

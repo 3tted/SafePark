@@ -1,6 +1,7 @@
 # API keys y secretos — no subir al repositorio
 includes/config_clima.php
 includes/config_api.php
+includes/config_google.php
 
 # Node
 node_modules/
