@@ -6,7 +6,7 @@
     <title>Perfil - SafePark</title>
     <link rel="icon" href="../Assets/logo.png">
     <link rel="stylesheet" href="../CSS/styles.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -17,11 +17,12 @@ requiere_sesion();
 
 $id = $_SESSION['id_usuario'];
 
-// Perfil, reportes y favoritos se piden en paralelo
+// Perfil, reportes, favoritos y actividad se piden en paralelo
 $datos = api_get_multi([
     'perfil'    => '/usuarios/' . $id,
     'reportes'  => '/reportes/usuario/' . $id,
     'favoritos' => '/favoritos/' . $id,
+    'actividad' => '/usuarios/' . $id . '/actividad',
 ]);
 
 $perfil_api = $datos['perfil'];
@@ -36,6 +37,16 @@ $puntos_usuario         = $perfil_api['puntos'] ?? 0;
 $total_reportes_usuario = array_sum(array_column($perfil_api['reportes'] ?? [], 'total'));
 $mis_reportes           = $datos['reportes'];
 $total_favoritos        = count($datos['favoritos']);
+$actividad              = $datos['actividad'];
+
+// Cómo se dibuja cada tipo de actividad: ícono, color de fondo y frase
+$estilo_actividad = [
+    'reporte'    => ['bg' => '#fef3c7', 'verbo' => 'Reportaste en'],
+    'evento'     => ['bg' => '#dbeafe', 'verbo' => 'Organizaste un evento en'],
+    'comentario' => ['bg' => '#ede9fe', 'verbo' => 'Comentaste en'],
+    'reaccion'   => ['bg' => '#fee2e2', 'verbo' => 'Reaccionaste en'],
+];
+$iconos_reporte = ['incidente' => '🚨', 'condicion' => '🏚️', 'sugerencia' => '💡'];
 
 $nav_base   = '../';
 $nav_active = 'perfil';
@@ -180,12 +191,49 @@ require_once '../includes/navbar.php';
 
             <!-- Tab: Actividad -->
             <div class="ptab-panel" id="tab-actividad" style="display:none;">
+                <?php if (empty($actividad)): ?>
                 <div class="pempty">
                     <div class="pempty-icon">📰</div>
                     <div class="pempty-text">Sin actividad reciente</div>
-                    <div class="pempty-sub">Tu historial de acciones aparecerá aquí</div>
+                    <div class="pempty-sub">Tus reportes, comentarios y reacciones aparecerán aquí</div>
                     <a class="btn-ir" href="../Comunidad/index.php">Ver comunidad</a>
                 </div>
+                <?php else: ?>
+                <div class="actividad-lista">
+                    <?php foreach ($actividad as $act):
+                        $tipo   = $act['tipo'];
+                        $estilo = $estilo_actividad[$tipo] ?? ['bg' => '#f3f4f6', 'verbo' => 'Actividad en'];
+
+                        // Las reacciones muestran el emoji que se usó; los reportes,
+                        // el ícono de su categoría; el resto, uno fijo.
+                        if ($tipo === 'reaccion') {
+                            $icono = $act['subtipo'] ?: '👍';
+                        } elseif ($tipo === 'reporte') {
+                            $icono = $iconos_reporte[$act['subtipo']] ?? '📋';
+                        } else {
+                            $icono = $tipo === 'evento' ? '📅' : '💬';
+                        }
+
+                        $fecha_act = date('d/m/Y H:i', strtotime($act['fecha']));
+                        $contexto  = $act['contexto'] ?? null;
+                        $detalle   = trim((string)($act['detalle'] ?? ''));
+                    ?>
+                    <div class="act-item">
+                        <div class="act-icono" style="background:<?= $estilo['bg'] ?>;"><?= $icono ?></div>
+                        <div class="act-cuerpo">
+                            <div class="act-titulo">
+                                <?= $estilo['verbo'] ?>
+                                <span class="act-area"><?= htmlspecialchars($contexto ?: 'la comunidad') ?></span>
+                            </div>
+                            <?php if ($detalle !== ''): ?>
+                                <div class="act-detalle">"<?= htmlspecialchars(mb_substr($detalle, 0, 90)) ?><?= mb_strlen($detalle) > 90 ? '…' : '' ?>"</div>
+                            <?php endif; ?>
+                            <div class="act-fecha"><?= $fecha_act ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
 
         </div>

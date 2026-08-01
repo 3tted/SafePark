@@ -315,3 +315,73 @@
 }
 
 .btn-guardar-modal-admin:hover { background: var(--g1); }
+
+/* ===== Móvil =====
+   El panel tampoco tenía reglas responsive. La tabla de reportes lleva ocho
+   columnas, así que en un teléfono no hay forma de que quepa: se deja que se
+   deslice horizontalmente dentro de su panel en vez de romper el diseño. */
+@media (max-width: 768px) {
+    .admin-hero {
+        padding: 20px 16px;
+    }
+    .admin-hero h2 { font-size: 1.25rem; }
+    .admin-hero p  { font-size: 0.82rem; }
+
+    /* Dos tarjetas por fila en vez de cuatro apretadas */
+    .admin-stats {
+        padding: 16px 12px;
+        gap: 10px;
+    }
+    .astat {
+        flex: 1 1 calc(50% - 10px);
+        min-width: 0;
+        padding: 12px;
+    }
+    .astat-n { font-size: 1.4rem; }
+    .astat-l { font-size: 0.72rem; }
+
+    .admin-layout {
+        margin: 16px auto;
+        padding: 0 10px;
+    }
+
+    /* Pestañas deslizables */
+    .admin-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+    .admin-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.82rem;
+        padding: 10px 14px;
+    }
+
+    .atab-panel {
+        padding: 12px;
+        min-height: 0;          /* los 420px fijos dejaban un hueco enorme */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* La tabla conserva su ancho y se desliza dentro del panel */
+    .admin-table {
+        font-size: 0.78rem;
+        min-width: 720px;
+    }
+    .admin-table th,
+    .admin-table td { padding: 8px; }
+
+    .desc-cell { max-width: 160px; }
+
+    .select-estado { font-size: 0.75rem; padding: 4px 6px; }
+    .btn-actualizar { font-size: 0.72rem; padding: 5px 8px; }
+
+    /* Modal de editar área */
+    .modal-card-admin {
+        padding: 20px;
+        max-height: 88vh;
+        overflow-y: auto;
+    }
+}

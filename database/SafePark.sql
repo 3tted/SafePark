@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS USUARIO (
     id_usuario      INT          PRIMARY KEY AUTO_INCREMENT,
     nombre          VARCHAR(100) NOT NULL,
     email           VARCHAR(100) NOT NULL UNIQUE,
-    contrasena_hash VARCHAR(255) NOT NULL,
+    -- Queda en NULL para las cuentas creadas con Google: esas no tienen
+    -- contraseña propia y su identidad la verifica Google.
+    contrasena_hash VARCHAR(255) DEFAULT NULL,
     rol             ENUM('usuario','admin') DEFAULT 'usuario',
     foto_perfil     VARCHAR(255) DEFAULT NULL,
     fecha_registro  DATETIME     DEFAULT CURRENT_TIMESTAMP

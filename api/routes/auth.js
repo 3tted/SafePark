@@ -21,9 +21,12 @@ router.post('/login', soloPHP, async (req, res) => {
             [email.trim()]
         );
 
-        // Mismo mensaje si el correo no existe o si la contrasena no coincide,
-        // para no revelar que correos estan registrados
-        if (!filas.length || !bcrypt.compareSync(password, filas[0].contrasena_hash)) {
+        // Mismo mensaje si el correo no existe, si la cuenta es de Google (no
+        // tiene contraseña propia) o si la contraseña no coincide: así no se
+        // revela qué correos están registrados ni de qué tipo son.
+        if (!filas.length ||
+            !filas[0].contrasena_hash ||
+            !bcrypt.compareSync(password, filas[0].contrasena_hash)) {
             return res.json({ ok: false, error: 'Credenciales incorrectas' });
         }
 
@@ -34,6 +37,55 @@ router.post('/login', soloPHP, async (req, res) => {
         });
     } catch (err) {
         console.error('POST /auth/login error:', err.message);
+        res.status(500).json({ ok: false, error: 'Error del servidor' });
+    }
+});
+
+// POST /api/auth/google — entra (o registra) a alguien con su cuenta de Google
+//
+// Quien verificó la identidad es Google: el PHP ya intercambió el código por un
+// token y confirmó el correo antes de llamar aquí. Por eso este endpoint no
+// recibe contraseña, y por eso exige el secreto compartido — si estuviera
+// abierto, cualquiera podría entrar mandando el correo de otra persona.
+router.post('/google', soloPHP, async (req, res) => {
+    const { email, nombre } = req.body;
+
+    if (!email?.trim()) {
+        return res.status(400).json({ ok: false, error: 'Falta el correo' });
+    }
+
+    const correo = email.trim().toLowerCase();
+
+    try {
+        const [existentes] = await db.query(
+            'SELECT id_usuario, nombre, rol FROM USUARIO WHERE email = ?',
+            [correo]
+        );
+
+        // Si el correo ya estaba registrado (con contraseña o con Google) se
+        // reutiliza esa cuenta en vez de crear una duplicada.
+        if (existentes.length) {
+            const u = existentes[0];
+            return res.json({
+                ok: true,
+                nuevo: false,
+                usuario: { id_usuario: u.id_usuario, nombre: u.nombre, rol: u.rol }
+            });
+        }
+
+        // Cuenta nueva: sin contraseña, porque se entra siempre por Google
+        const [r] = await db.query(
+            'INSERT INTO USUARIO (nombre, email, contrasena_hash) VALUES (?,?,NULL)',
+            [(nombre || correo.split('@')[0]).trim().slice(0, 100), correo]
+        );
+
+        res.json({
+            ok: true,
+            nuevo: true,
+            usuario: { id_usuario: r.insertId, nombre: nombre || correo.split('@')[0], rol: 'usuario' }
+        });
+    } catch (err) {
+        console.error('POST /auth/google error:', err.message);
         res.status(500).json({ ok: false, error: 'Error del servidor' });
     }
 });
