@@ -359,7 +359,7 @@ require_once '../includes/navbar.php';
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
     <script>
         const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
-        const API_URL    = '<?= API_BASE ?>';
+        const API_URL    = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
     <script src="comunidad.js"></script>
 </body>

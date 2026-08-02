@@ -167,7 +167,7 @@ require_once '../includes/navbar.php';
 
     <script>
         const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
-        const API_URL    = '<?= API_BASE ?>';
+        const API_URL    = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
     <script src="explorar.js"></script>
     <script>

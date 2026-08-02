@@ -7,11 +7,30 @@ if (file_exists(__DIR__ . '/config_api.php')) {
     require_once __DIR__ . '/config_api.php';
 }
 
-define('API_BASE',   defined('CFG_API_BASE')   ? CFG_API_BASE   : (getenv('SAFEPARK_API')        ?: 'http://localhost:3000/api'));
+// SafePark tiene dos APIs propias, cada una en su propio servicio:
+//   Usuarios -> cuentas, autenticación, perfiles y roles
+//   Datos    -> áreas, reportes, eventos, comentarios, reacciones y favoritos
+define('API_USUARIOS', defined('CFG_API_USUARIOS') ? CFG_API_USUARIOS : (getenv('SAFEPARK_API_USUARIOS') ?: 'http://localhost:3001/api'));
+define('API_DATOS',    defined('CFG_API_DATOS')    ? CFG_API_DATOS    : (getenv('SAFEPARK_API_DATOS')    ?: 'http://localhost:3002/api'));
 
 // El secreto solo hace falta para las operaciones de escritura; las lecturas
-// son públicas. Debe coincidir con API_SECRET del servicio en Railway.
+// son públicas. Debe coincidir con API_SECRET de ambos servicios en Railway.
 define('API_SECRET', defined('CFG_API_SECRET') ? CFG_API_SECRET : (getenv('SAFEPARK_API_SECRET') ?: ''));
+
+/**
+ * Decide a qué servicio va cada llamada, mirando el inicio de la ruta.
+ *
+ * Se resuelve aquí para que las páginas sigan llamando api_get('/usuarios/5')
+ * sin preocuparse por cuál servicio la atiende. Si mañana se dividen distinto,
+ * solo cambia esta función.
+ */
+function api_url(string $endpoint): string {
+    $de_usuarios = ['/usuarios', '/auth'];
+    foreach ($de_usuarios as $prefijo) {
+        if (strpos($endpoint, $prefijo) === 0) return API_USUARIOS . $endpoint;
+    }
+    return API_DATOS . $endpoint;
+}
 
 // Cabeceras comunes a todas las llamadas que modifican datos
 function api_headers(): array {
@@ -25,7 +44,7 @@ function api_headers(): array {
 // Ejecuta la peticion y devuelve el JSON decodificado.
 // $metodo es POST, PUT o DELETE; $data null para DELETE.
 function api_request(string $metodo, string $endpoint, ?array $data = null): array {
-    $ch = curl_init(API_BASE . $endpoint);
+    $ch = curl_init(api_url($endpoint));
     $opciones = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST  => $metodo,
@@ -50,7 +69,7 @@ function api_request(string $metodo, string $endpoint, ?array $data = null): arr
 
 function api_get(string $endpoint): array {
     $ctx  = stream_context_create(['http' => ['timeout' => 8]]);
-    $json = @file_get_contents(API_BASE . $endpoint, false, $ctx);
+    $json = @file_get_contents(api_url($endpoint), false, $ctx);
     if ($json === false) return [];
     return json_decode($json, true) ?? [];
 }
@@ -88,7 +107,7 @@ function api_get_multi(array $endpoints): array {
     $handles = [];
 
     foreach ($endpoints as $clave => $endpoint) {
-        $ch = curl_init(API_BASE . $endpoint);
+        $ch = curl_init(api_url($endpoint));
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 8,
