@@ -140,27 +140,6 @@
     font-weight: 700;
 }
 
-.explorar-sort {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 700;
-}
-
-.explorar-sort select {
-    border: 2px solid #c8dec8;
-    border-radius: 8px;
-    padding: 5px 10px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 13px;
-    color: #1a1a1a;
-    outline: none;
-    background: white;
-    cursor: pointer;
-}
-
 .explorar-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -229,12 +208,6 @@
     margin-top: 10px;
 }
 
-.ecard-rating {
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 700;
-}
-
 /* semaforo */
 .semaforo {
     display: inline-flex;
@@ -259,36 +232,6 @@
 .sin-resultados-icon { font-size: 48px; margin-bottom: 12px; }
 .sin-resultados-texto { font-size: 16px; font-weight: 800; color: var(--g1); margin-bottom: 6px; }
 .sin-resultados-sub { font-size: 13px; }
-
-.explorar-pagination {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 32px;
-}
-
-.page-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 2px solid #c8dec8;
-    background: white;
-    font-family: 'Nunito', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    color: var(--g1);
-    transition: all 0.15s;
-}
-
-.page-btn.active {
-    background: var(--g2);
-    color: white;
-    border-color: var(--g2);
-}
-
-.page-btn:hover:not(.active) {
-    border-color: var(--g3);
-}
 
 .btn-fav {
     background: none;

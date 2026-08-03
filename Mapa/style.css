@@ -112,21 +112,6 @@
   flex-shrink: 0;
 }
 
-.score-safe {
-  background: #d1fae5;
-  color: var(--safe);
-}
-
-.score-warn {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.score-risk {
-  background: #fee2e2;
-  color: var(--risk);
-}
-
 .area-info h4 {
   font-size: 13px;
   font-weight: 700;

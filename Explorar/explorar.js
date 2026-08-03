@@ -1,51 +1,79 @@
-// Estado central del filtro — se actualiza con cada input o chip seleccionado
+// ============================================================
+//  Explorar — filtrado de áreas, favoritos y modal de detalle
+//
+//  El filtrado ocurre en el navegador, no en el servidor: PHP ya pintó todas
+//  las tarjetas, así que filtrar es solo esconder y mostrar las que existen.
+//  Es instantáneo y no gasta llamadas al API.
+// ============================================================
+
+// Los tres filtros viven juntos aquí para poder combinarlos: se puede pedir
+// "parques" Y "en riesgo" Y que digan "centro" al mismo tiempo.
 const estado = {
-    busqueda: '',
-    tipo: 'todos',
+    busqueda:  '',
+    tipo:      'todos',
     seguridad: 'todos'
 };
 
+// Se dispara al escribir en el buscador
 function filtrarAreas() {
     estado.busqueda = document.getElementById('busqueda').value.toLowerCase();
     aplicarFiltros();
 }
 
+// Se dispara al tocar un chip de Tipo o de Seguridad.
+// El "grupo" sirve para apagar solo los chips de esa fila, no los de la otra.
 function toggleChipGrupo(chip, grupo) {
     document.querySelectorAll(`[onclick*="'${grupo}'"]`).forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
-    if (grupo === 'tipo') estado.tipo = chip.dataset.valor;
+
+    if (grupo === 'tipo')      estado.tipo      = chip.dataset.valor;
     if (grupo === 'seguridad') estado.seguridad = chip.dataset.valor;
+
     aplicarFiltros();
 }
 
+// Decide qué tarjetas se ven, aplicando los tres filtros a la vez
 function aplicarFiltros() {
-    const cards = Array.from(document.querySelectorAll('.ecard'));
+    const tarjetas = Array.from(document.querySelectorAll('.ecard'));
 
-    let visibles = cards.filter(card => {
-        const nombre = card.querySelector('.ecard-name').textContent.toLowerCase();
-        const tipo   = card.dataset.tipo;
-        const score  = parseInt(card.dataset.score);
+    const visibles = tarjetas.filter(tarjeta => {
+        // Estos datos los dejó PHP en atributos data-* de cada tarjeta
+        const nombre = tarjeta.querySelector('.ecard-name').textContent.toLowerCase();
+        const tipo   = tarjeta.dataset.tipo;
+        const score  = parseInt(tarjeta.dataset.score);
 
+        // Basta con fallar un filtro para quedar fuera
         if (estado.busqueda && !nombre.includes(estado.busqueda)) return false;
         if (estado.tipo !== 'todos' && tipo !== estado.tipo) return false;
-        if (estado.seguridad === 'seguro'    && score < 70) return false;
+
+        // Los rangos del semáforo: verde ≥70, amarillo 40-69, rojo <40
+        if (estado.seguridad === 'seguro'     && score < 70) return false;
         if (estado.seguridad === 'precaucion' && (score < 40 || score >= 70)) return false;
-        if (estado.seguridad === 'riesgo'    && score >= 40) return false;
+        if (estado.seguridad === 'riesgo'     && score >= 40) return false;
+
         return true;
     });
 
-    cards.forEach(c => c.style.display = 'none');
-    visibles.forEach(c => c.style.display = '');
+    // Se esconden todas y luego se muestran las que pasaron
+    tarjetas.forEach(t => t.style.display = 'none');
+    visibles.forEach(t => t.style.display = '');
 
-    document.getElementById('total-areas').textContent = `${visibles.length} área${visibles.length !== 1 ? 's' : ''}`;
-    document.getElementById('sin-resultados').style.display = visibles.length === 0 ? 'block' : 'none';
+    // El contador y el mensaje de "sin resultados" se ajustan solos
+    document.getElementById('total-areas').textContent =
+        `${visibles.length} área${visibles.length !== 1 ? 's' : ''}`;
+    document.getElementById('sin-resultados').style.display =
+        visibles.length === 0 ? 'block' : 'none';
 }
 
+// Al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
+    // Si se llegó desde el buscador del Inicio, la URL trae un término:
+    // se aplica de una vez para que el usuario no tenga que repetirlo
     const inicial = document.getElementById('busqueda').value;
     if (inicial) filtrarAreas();
 
-    // Marcar favoritos actuales del usuario
+    // Se piden los favoritos del usuario y se pintan de rojo sus corazones.
+    // PHP no los sabe al generar la página, por eso se consultan aparte.
     fetch(API_URL + '/favoritos/' + ID_USUARIO)
         .then(r => r.json())
         .then(ids => {
@@ -54,11 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) { btn.textContent = '♥'; btn.classList.add('fav-active'); }
             });
         })
+        // Si falla, los corazones quedan vacíos: molesto pero no rompe la página
         .catch(() => {});
 });
 
+// Guarda o quita un área de favoritos (el mismo botón hace las dos cosas)
 function toggleFav(btn) {
     const id_area = btn.dataset.id;
+
     fetch(API_URL + '/favoritos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,20 +170,31 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ===== Modal detalle de área =====
-const iconosTipo  = { incidente: '🚨', condicion: '🏚️', sugerencia: '💡' };
-const bgsTipo     = { incidente: '#fee2e2', condicion: '#fef3c7', sugerencia: '#dbeafe' };
-const labelsTipo  = { incidente: 'Incidente', condicion: 'Condición', sugerencia: 'Sugerencia' };
-const iconoEmoji  = { parque: '🌳', deportivo: '⚽', plaza: '🏛️' };
+// ============================================================
+//  Modal de detalle: se abre al tocar una tarjeta
+//
+//  Los datos del área ya venían en la tarjeta (atributos data-*), así que se
+//  muestran de inmediato. Lo único que se pide al API son sus reportes, porque
+//  esos sí no estaban en la página.
+// ============================================================
 
+// Cómo se dibuja cada tipo de reporte dentro del modal
+const iconosTipo = { incidente: '🚨',      condicion: '🏚️',     sugerencia: '💡' };
+const bgsTipo    = { incidente: '#fee2e2', condicion: '#fef3c7', sugerencia: '#dbeafe' };
+const labelsTipo = { incidente: 'Incidente', condicion: 'Condición', sugerencia: 'Sugerencia' };
+// Ícono de respaldo según el tipo de área, para cuando no tiene foto
+const iconoEmoji = { parque: '🌳', deportivo: '⚽', plaza: '🏛️' };
+
+// Recibe la tarjeta que se tocó y lee sus datos de los atributos data-*
 function abrirModalArea(el) {
-    const id     = el.dataset.id;
-    const score  = parseInt(el.dataset.score);
-    const nombre = el.dataset.nombre;
-    const colonia= el.dataset.colonia;
-    const tipo   = el.dataset.tipo;
-    const foto   = el.dataset.foto;
+    const id      = el.dataset.id;
+    const score   = parseInt(el.dataset.score);
+    const nombre  = el.dataset.nombre;
+    const colonia = el.dataset.colonia;
+    const tipo    = el.dataset.tipo;
+    const foto    = el.dataset.foto;
 
+    // El color y la etiqueta del semáforo salen del score
     const semCls = score >= 70 ? 'sem-safe' : (score >= 40 ? 'sem-warn' : 'sem-risk');
     const semLbl = score >= 70 ? '● Seguro' : (score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
 
@@ -170,6 +212,7 @@ function abrirModalArea(el) {
     document.getElementById('modal-semaforo').textContent = semLbl + ' · ' + score + '/100';
     document.getElementById('modal-mapa-link').href = '../Mapa/index.php?area=' + id;
 
+    // Si el área tiene foto se usa de portada; si no, un emoji según su tipo
     const fotoEl = document.getElementById('modal-foto');
     if (foto) {
         fotoEl.style.backgroundImage = `url('${foto}')`;
@@ -179,10 +222,15 @@ function abrirModalArea(el) {
         fotoEl.textContent = iconoEmoji[tipo] || '🌿';
     }
 
-    document.getElementById('modal-reportes').innerHTML = '<div class="modal-loading">Cargando reportes...</div>';
+    // El modal se abre de inmediato con un mensaje de carga, en vez de esperar
+    // a que llegue la respuesta: se siente más rápido aunque tarde lo mismo
+    document.getElementById('modal-reportes').innerHTML =
+        '<div class="modal-loading">Cargando reportes...</div>';
     document.getElementById('modal-area').style.display = 'flex';
+    // Bloquea el scroll del fondo para que no se mueva detrás del modal
     document.body.style.overflow = 'hidden';
 
+    // Lo único que sí hay que pedir al API
     fetch(API_URL + '/reportes/area/' + id)
         .then(r => r.json())
         .then(reportes => {

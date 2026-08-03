@@ -89,29 +89,6 @@
 }
 
 
-.upload-area {
-    border: 2px dashed #c8dec8;
-    border-radius: 10px;
-    padding: 32px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-    line-height: 1.6;
-}
-
-.upload-area span {
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.upload-area:hover {
-    border-color: var(--g3);
-    background: #f8faf8;
-}
-
 .btn-submit {
     background: var(--g2);
     color: white;
@@ -199,7 +176,6 @@
 
 .tag-aprov { background: #d8f3dc; color: var(--g1); }
 .tag-pend  { background: #fef3c7; color: #92400e; }
-.tag-rech  { background: #fee2e2; color: #991b1b; }
 
 .reporte-big-foto {
     width: 100%;

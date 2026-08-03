@@ -55,6 +55,5 @@
             </div>
         </div>
     </div>
-    <script src="../Javascript/archivo.js"></script>
 </body>
 </html>
