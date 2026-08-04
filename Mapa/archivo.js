@@ -85,6 +85,7 @@ areas.forEach(area => {
                 <div style="background:${color};color:white;border-radius:20px;padding:3px 10px;display:inline-block;font-weight:700;font-size:0.82rem;">
                     ${area.score >= 70 ? '● Seguro' : area.score >= 40 ? '⚠ Precaución' : '✕ Riesgo'} · ${area.score}/100
                 </div>
+                <button onclick="comoLlegar(${area.id})" style="margin-top:8px;width:100%;padding:6px;background:#3b82f6;color:white;border:none;border-radius:6px;font-family:Nunito,sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;">🧭 Cómo llegar</button>
                 ${editarBtn}
             </div>
         `);
@@ -157,6 +158,109 @@ function centrarUsuario() {
             weight: 3, fillOpacity: 1
         }).addTo(map).bindPopup('📍 Tu ubicación').openPopup();
     });
+}
+
+// ============================================================
+//  Cómo llegar
+//
+//  Pide la ubicación del usuario, se la manda al API junto con la del área, y
+//  dibuja el trayecto que devuelve OpenRouteService.
+//
+//  Todo el camino puede fallar —el usuario niega el permiso, el servicio de
+//  rutas no responde, se acabó la cuota— así que en cada punto donde eso pasa
+//  se ofrece abrir Google Maps, que siempre funciona. La función nunca deja al
+//  usuario sin salida.
+// ============================================================
+
+// La ruta dibujada actualmente. Se guarda para poder borrarla antes de
+// dibujar otra: si no, se irían acumulando líneas encima del mapa.
+let rutaDibujada = null;
+let marcadorOrigen = null;
+
+function limpiarRuta() {
+    if (rutaDibujada)   { map.removeLayer(rutaDibujada);   rutaDibujada = null; }
+    if (marcadorOrigen) { map.removeLayer(marcadorOrigen); marcadorOrigen = null; }
+}
+
+// Enlace a Google Maps con la ruta a pie ya planteada. Es el plan B de todo
+// lo de abajo, y en celular abre la app con navegación por voz.
+function enlaceGoogleMaps(area) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${area.lat},${area.lng}&travelmode=walking`;
+}
+
+function comoLlegar(id) {
+    const item = marcadores.find(m => m.area.id === id);
+    if (!item) return;
+    const { area, marker } = item;
+
+    // Espacio dentro del popup donde se irá informando del avance
+    const popup = marker.getPopup().getElement();
+    let estado = popup.querySelector('.sp-estado-ruta');
+    if (!estado) {
+        estado = document.createElement('div');
+        estado.className = 'sp-estado-ruta';
+        estado.style.cssText = 'margin-top:8px;font-size:0.78rem;color:#374151;';
+        popup.querySelector('.leaflet-popup-content').appendChild(estado);
+    }
+
+    if (!navigator.geolocation) {
+        estado.innerHTML = `Tu navegador no comparte la ubicación. <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+        return;
+    }
+
+    estado.textContent = '📍 Buscando tu ubicación…';
+
+    navigator.geolocation.getCurrentPosition(
+        pos => trazarRuta(pos.coords, area, marker, estado),
+        () => {
+            // El usuario negó el permiso, o el GPS no respondió
+            estado.innerHTML = `No pudimos obtener tu ubicación. <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+async function trazarRuta(coords, area, marker, estado) {
+    estado.textContent = '🧭 Calculando la ruta…';
+
+    const desde = `${coords.latitude},${coords.longitude}`;
+    const hasta = `${area.lat},${area.lng}`;
+
+    try {
+        const r = await fetch(`${API_URL}/rutas?desde=${desde}&hasta=${hasta}&perfil=foot-walking`);
+        const datos = await r.json();
+
+        if (!r.ok || !datos.ok) throw new Error(datos.error || 'Sin respuesta');
+
+        limpiarRuta();
+
+        rutaDibujada = L.polyline(datos.linea, {
+            color: '#3b82f6', weight: 5, opacity: 0.8
+        }).addTo(map);
+
+        // Punto de partida, del mismo azul que la línea
+        marcadorOrigen = L.circleMarker([coords.latitude, coords.longitude], {
+            radius: 9, fillColor: '#3b82f6', color: 'white', weight: 3, fillOpacity: 1
+        }).addTo(map).bindPopup('📍 Tu ubicación');
+
+        // Encuadra la ruta completa, con margen para que no quede pegada al borde
+        map.fitBounds(rutaDibujada.getBounds(), { padding: [50, 50] });
+
+        const km = (datos.distancia / 1000).toFixed(1);
+        const min = Math.round(datos.duracion / 60);
+
+        estado.innerHTML = `
+            <div style="font-weight:700;">🚶 ${km} km · ${min} min caminando</div>
+            <div style="margin-top:4px;">
+                <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Navegar en Google Maps</a>
+                · <a href="#" onclick="limpiarRuta();return false;">Quitar ruta</a>
+            </div>`;
+
+    } catch (e) {
+        // Cualquier fallo del servicio de rutas termina aquí. El usuario no se
+        // queda sin poder llegar: Google Maps sigue disponible.
+        estado.innerHTML = `No se pudo trazar la ruta (${e.message}). <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+    }
 }
 
 // ============================================================

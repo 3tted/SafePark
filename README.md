@@ -303,6 +303,7 @@ defecto y las APIs dejan pasar las escrituras sin secreto (avisan al arrancar).
 |---|---|---|
 | Ambas APIs | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Conexión a MySQL |
 | Ambas APIs | `API_SECRET` | Protege las rutas de escritura (el mismo valor en las dos) |
+| API de Datos | `ORS_API_KEY` | Llave de OpenRouteService para el botón "Cómo llegar". Si falta, el mapa ofrece Google Maps en su lugar |
 | PHP | `SAFEPARK_API_USUARIOS` | URL de la API de Usuarios |
 | PHP | `SAFEPARK_API_DATOS` | URL de la API de Datos |
 | PHP | `SAFEPARK_API_SECRET` | Debe coincidir con `API_SECRET` |

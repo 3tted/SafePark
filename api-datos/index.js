@@ -24,12 +24,17 @@ app.use('/api/eventos',     require('./routes/eventos'));
 app.use('/api/comentarios', require('./routes/comentarios'));
 app.use('/api/reacciones',  require('./routes/reacciones'));
 app.use('/api/favoritos',   require('./routes/favoritos'));
+app.use('/api/rutas',       require('./routes/rutas'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', servicio: 'datos' }));
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
     console.log(`SafePark API Datos corriendo en http://localhost:${PORT}`);
+    if (!process.env.ORS_API_KEY) {
+        console.warn('AVISO: ORS_API_KEY no esta configurada. El boton "Como llegar"');
+        console.warn('no dibujara la ruta; ofrecera abrir Google Maps en su lugar.');
+    }
     if (!process.env.API_SECRET) {
         console.warn('AVISO: API_SECRET no esta configurada. Crear, editar y borrar');
         console.warn('areas, reportes y eventos esta ABIERTO a cualquiera.');
