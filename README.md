@@ -34,12 +34,29 @@ Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juá
 SafePark separa el frontend del backend mediante una API REST independiente:
 
 ```
-Navegador / PHP (frontend)
-        ↕ HTTP
-API REST — Node.js + Express (puerto 3000)
-        ↕ mysql2
-Base de datos — MySQL (safepark_db)
+              Navegador / PHP (frontend)
+                        ↕ HTTP
+        ┌───────────────┴───────────────┐
+        ↓                               ↓
+API Usuarios (3001)            API Datos (3002)
+auth, usuarios                 areas, reportes, eventos,
+                               comentarios, reacciones, favoritos
+        └───────────────┬───────────────┘
+                        ↕ mysql2
+              Base de datos — MySQL
 ```
+
+SafePark expone **dos APIs propias**, cada una desplegada como un servicio
+independiente:
+
+- **API de Usuarios** — cuentas, autenticación (contraseña y Google), perfiles,
+  roles y actividad. Es la única que maneja contraseñas: los hashes se comparan
+  ahí dentro y nunca salen del servicio.
+- **API de Datos** — áreas verdes, reportes, eventos, comentarios, reacciones y
+  favoritos. Calcula el semáforo de seguridad de cada área.
+
+El PHP no sabe cuál servicio atiende cada llamada: la función `api_url()` de
+`includes/api.php` lo resuelve por el prefijo de la ruta.
 
 - **PHP** mantiene la sesión del usuario y renderiza el HTML
 - **Node.js + Express** expone todos los datos vía API REST y es el único que
@@ -60,7 +77,7 @@ de datos nunca quede expuesta a internet.
 | Mapas | Leaflet.js + OpenStreetMap |
 | Clima | OpenWeatherMap API |
 | Geocodificación / Autocompletado | Nominatim (OpenStreetMap) |
-| Backend / API REST | Node.js + Express (puerto 3000) |
+| Backend / APIs REST | Node.js + Express (dos servicios: 3001 y 3002) |
 | Base de datos | MySQL (XAMPP) |
 | ORM / driver | mysql2 |
 | Tipografía | Nunito (Google Fonts) |
@@ -113,11 +130,15 @@ de datos nunca quede expuesta a internet.
 
 ## 📡 API REST — Endpoints
 
-Base URL: `http://localhost:3000/api`
+En local: **Usuarios** en `http://localhost:3001/api` y **Datos** en
+`http://localhost:3002/api`.
 
 Las rutas marcadas con 🔒 exigen la cabecera `X-API-Secret` y solo las llama el
 servidor PHP. Las de lectura son públicas porque el JavaScript del navegador las
 consume directamente.
+
+Las rutas de `/auth` y `/usuarios` las atiende la **API de Usuarios**; todas las
+demás, la **API de Datos**.
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
@@ -156,22 +177,30 @@ consume directamente.
 
 ```
 SafePark/
-├── api/                            ← API REST (Node.js + Express)
-│   ├── index.js                    ← Servidor principal (puerto 3000)
+├── api-usuarios/                   ← API 1: cuentas y autenticación
+│   ├── index.js                    ← Servidor (puerto 3001)
 │   ├── db.js                       ← Pool de conexión MySQL (mysql2)
 │   ├── .env                        ← Variables de entorno (no subir a git)
-│   ├── package.json
+│   ├── package.json                ← incluye bcryptjs
 │   ├── middleware/
 │   │   └── solo_php.js             ← Exige X-API-Secret en las escrituras
 │   └── routes/
-│       ├── auth.js                 ← POST /login (verifica contraseñas)
-│       ├── areas.js                ← GET, POST, PUT, DELETE + stats
+│       ├── auth.js                 ← POST /login y /google
+│       └── usuarios.js             ← registro, perfil, roles, actividad
+├── api-datos/                      ← API 2: contenido de la plataforma
+│   ├── index.js                    ← Servidor (puerto 3002)
+│   ├── db.js
+│   ├── .env
+│   ├── package.json
+│   ├── middleware/
+│   │   └── solo_php.js
+│   └── routes/
+│       ├── areas.js                ← GET, POST, PUT, DELETE + semáforo
 │       ├── reportes.js             ← GET, POST, PUT (estado)
-│       ├── usuarios.js             ← GET, POST, PUT (perfil y rol)
-│       ├── favoritos.js            ← GET, POST (toggle)
 │       ├── eventos.js              ← GET, POST
+│       ├── comentarios.js          ← GET, POST
 │       ├── reacciones.js           ← GET, POST (toggle)
-│       └── comentarios.js          ← GET, POST
+│       └── favoritos.js            ← GET, POST (toggle)
 ├── Admin/                          ← Panel de administración
 │   ├── index.php                   ← Vista principal del admin
 │   ├── actualizar_reporte.php      ← Cambia estado de reporte via API
@@ -247,35 +276,46 @@ SafePark/
 
 1. **Iniciar XAMPP** — encender Apache y MySQL
 
-2. **Levantar la API REST:**
+2. **Levantar las dos APIs**, cada una en su propia terminal:
 ```bash
-cd SafePark/api
+cd SafePark/api-usuarios
+npm install
 node index.js
 ```
-El API corre en `http://localhost:3000`
+```bash
+cd SafePark/api-datos
+npm install
+node index.js
+```
+Quedan en `http://localhost:3001` y `http://localhost:3002`.
 
 3. **Abrir el proyecto** en el navegador:
 ```
 http://localhost/SafePark/Login/index.php
 ```
 
-En local no hace falta configurar nada más: el PHP usa `http://localhost:3000/api`
-por defecto y el API deja pasar las escrituras sin secreto (avisa al arrancar).
+En local no hace falta configurar nada más: el PHP usa esos dos puertos por
+defecto y las APIs dejan pasar las escrituras sin secreto (avisan al arrancar).
 
 ### Variables de entorno para producción
 
 | Dónde | Variable | Para qué |
 |---|---|---|
-| API | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Conexión a MySQL |
-| API | `API_SECRET` | Protege las rutas de escritura |
-| PHP | `SAFEPARK_API` | URL del API desplegado |
+| Ambas APIs | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Conexión a MySQL |
+| Ambas APIs | `API_SECRET` | Protege las rutas de escritura (el mismo valor en las dos) |
+| API de Datos | `ORS_API_KEY` | Llave de OpenRouteService para el botón "Cómo llegar". Si falta, el mapa ofrece Google Maps en su lugar |
+| PHP | `SAFEPARK_API_USUARIOS` | URL de la API de Usuarios |
+| PHP | `SAFEPARK_API_DATOS` | URL de la API de Datos |
 | PHP | `SAFEPARK_API_SECRET` | Debe coincidir con `API_SECRET` |
 
-En el hosting PHP se definen con un `.htaccess` en la raíz:
+En el hosting PHP se definen con un `.htaccess` en la raíz, o —si el hosting no
+soporta `SetEnv`, como InfinityFree— con el archivo `includes/config_api.php`
+(ver `config_api.example.php`).
 
 ```apache
-SetEnv SAFEPARK_API https://tu-api.up.railway.app/api
-SetEnv SAFEPARK_API_SECRET tu_secreto
+SetEnv SAFEPARK_API_USUARIOS https://tu-api-usuarios.up.railway.app/api
+SetEnv SAFEPARK_API_DATOS    https://tu-api-datos.up.railway.app/api
+SetEnv SAFEPARK_API_SECRET   tu_secreto
 ```
 
 ---

@@ -1,3 +1,15 @@
+// ============================================================
+//  Comunidad — reacciones con emoji y comentarios
+//
+//  El feed lo pinta PHP desde el servidor; este archivo se encarga solo de lo
+//  que pasa después: reaccionar, comentar y abrir el selector de emojis.
+//
+//  Detalle clave: cada publicación puede ser un REPORTE o un EVENTO. Ambos
+//  viven mezclados en el mismo feed, así que cada bloque lleva dos atributos
+//  (data-id-reporte y data-id-evento) y solo uno tiene valor.
+// ============================================================
+
+// Cambia entre las pestañas del feed (Actividad, Eventos, Logros)
 function cambiarTab(tab, id) {
     document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
@@ -5,6 +17,10 @@ function cambiarTab(tab, id) {
     document.getElementById('tab-' + id).style.display = 'block';
 }
 
+// Averigua a qué publicación pertenece un botón.
+//
+// Sube por el árbol hasta el elemento que lleva los identificadores, para que
+// funcione sin importar si se tocó el botón directamente o algo dentro de él.
 function getIds(el) {
     const src = el.closest('[data-id-reporte]') || el;
     return {
@@ -68,12 +84,18 @@ document.addEventListener('click', e => {
     }
 });
 
+// Pone o quita una reacción y actualiza el contador sin recargar la página.
+//
+// Se llama desde dos lados: al tocar una reacción que ya existe, y al elegir un
+// emoji del selector.
 function reaccionar(triggerEl, emoji) {
     const reactionsBar = triggerEl && triggerEl.closest ? triggerEl.closest('.feed-reactions') : null;
     if (!reactionsBar) return;   // el botón ya no está en la página
 
     const { id_reporte, id_evento } = getIds(reactionsBar);
 
+    // Solo se manda el identificador que aplica; el otro se omite y el API lo
+    // guarda como NULL
     const payload = { id_usuario: ID_USUARIO, emoji };
     if (id_reporte) payload.id_reporte = id_reporte;
     if (id_evento)  payload.id_evento  = id_evento;
@@ -87,15 +109,19 @@ function reaccionar(triggerEl, emoji) {
         .then(data => {
             if (!data.ok) return;
 
+            // ¿Ya existía un botón para este emoji en esta publicación?
             let btn = Array.from(reactionsBar.querySelectorAll('.reaction-btn:not(.comment-toggle-btn)'))
                           .find(b => b.textContent.startsWith(emoji));
 
             if (data.total === 0 && btn) {
+                // Era la última reacción de ese emoji: el botón desaparece
                 btn.remove();
             } else if (btn) {
+                // Ya existía: solo cambia el número
                 btn.textContent = emoji + ' ' + data.total;
                 btn.classList.toggle('reaction-active', data.accion === 'added');
             } else if (data.total > 0) {
+                // Es el primero de ese emoji: hay que crear el botón
                 const addBtn = reactionsBar.querySelector('.reaction-add');
                 const nuevo = document.createElement('button');
                 nuevo.className = 'reaction-btn reaction-active';
@@ -109,12 +135,21 @@ function reaccionar(triggerEl, emoji) {
         .catch(() => {});
 }
 
+// Abre o cierra la sección de comentarios de una publicación.
+//
+// Los comentarios se piden la PRIMERA vez que se abren, no al cargar la página:
+// el feed muestra diez publicaciones y traer los comentarios de todas sería
+// gastar diez llamadas que quizá nadie va a mirar.
 function toggleComentarios(btn) {
+    // El contenedor cambia según sea un reporte o un evento del feed
     const feedContent = btn.closest('.feed-content') || btn.closest('.evento-info-big');
     const section = feedContent.querySelector('.comentarios-section');
     const abierto = section.style.display === 'block';
+
     section.style.display = abierto ? 'none' : 'block';
 
+    // "cargado" marca que ya se pidieron, para no repetir la llamada cada vez
+    // que se abre y cierra
     if (!abierto && !section.dataset.cargado) {
         section.dataset.cargado = '1';
         const { id_reporte, id_evento } = getIds(section);
@@ -136,8 +171,12 @@ function toggleComentarios(btn) {
     }
 }
 
+// Arma el HTML de un comentario. Se usa tanto al cargar los existentes como al
+// agregar uno nuevo, para que ambos se vean idénticos.
 function comentarioHTML(c) {
-    const fecha = new Date(c.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    const fecha = new Date(c.fecha).toLocaleDateString('es-MX', {
+        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
     return `<div class="comentario-item">
         <span class="comentario-autor">${c.nombre}</span>
         <span class="comentario-texto">${c.texto}</span>
@@ -145,11 +184,13 @@ function comentarioHTML(c) {
     </div>`;
 }
 
+// Publica un comentario y lo agrega a la lista sin recargar
 function enviarComentario(sendBtn) {
-    const form   = sendBtn.closest('.comentario-form');
-    const input  = form.querySelector('.comentario-input');
-    const texto  = input.value.trim();
-    if (!texto) return;
+    const form  = sendBtn.closest('.comentario-form');
+    const input = form.querySelector('.comentario-input');
+    const texto = input.value.trim();
+
+    if (!texto) return;   // no se mandan comentarios vacíos
 
     const section = sendBtn.closest('.comentarios-section');
     const { id_reporte, id_evento } = getIds(section);
@@ -158,6 +199,8 @@ function enviarComentario(sendBtn) {
     if (id_reporte) payload.id_reporte = id_reporte;
     if (id_evento)  payload.id_evento  = id_evento;
 
+    // Se desactiva el botón mientras viaja la petición, para que un doble clic
+    // no publique el mismo comentario dos veces
     sendBtn.disabled = true;
     fetch(API_URL + '/comentarios', {
         method: 'POST',

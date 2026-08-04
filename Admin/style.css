@@ -15,15 +15,6 @@
     font-size: 0.9rem;
 }
 
-.admin-badge {
-    background: var(--g5);
-    color: var(--g1) !important;
-    border-radius: 20px;
-    padding: 4px 12px !important;
-    font-weight: 800 !important;
-    font-size: 0.82rem !important;
-}
-
 /* Stats */
 .admin-stats {
     display: flex;
@@ -181,7 +172,6 @@
 .tag-pend  { background: #fef3c7; color: #92400e; }
 .tag-proc  { background: #dbeafe; color: #1e40af; }
 .tag-aprov { background: var(--g5); color: var(--g1); }
-.tag-rech  { background: #fee2e2; color: #b91c1c; }
 .tag-admin { background: #ede9fe; color: #5b21b6; }
 
 /* Acciones */

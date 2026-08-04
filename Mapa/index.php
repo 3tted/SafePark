@@ -145,7 +145,8 @@ require_once '../includes/navbar.php';
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const AREAS_DB = <?= json_encode($areas_db) ?>;
+        const API_URL  = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
-    <script src="archivo.js?v=6"></script>
+    <script src="archivo.js?v=7"></script>
 </body>
 </html>
