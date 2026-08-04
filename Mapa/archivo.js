@@ -143,21 +143,53 @@ function filtrarChip(el, tipo) {
     filtrarLista();
 }
 
+// El punto azul que marca dónde está el usuario.
+//
+// Es uno solo para toda la página, compartido entre el botón "Mi ubicación" y
+// el trazado de rutas. Antes cada uno creaba el suyo sin guardarlo, así que se
+// iban acumulando puntos encima del mapa y no había forma de quitarlos.
+let marcadorUsuario = null;
+
+// Lo coloca la primera vez y de ahí en adelante solo lo mueve
+function ponerPuntoUsuario(lat, lng) {
+    if (marcadorUsuario) {
+        marcadorUsuario.setLatLng([lat, lng]);
+    } else {
+        marcadorUsuario = L.circleMarker([lat, lng], {
+            radius: 10, fillColor: '#3b82f6', color: 'white',
+            weight: 3, fillOpacity: 1
+        }).addTo(map).bindPopup('📍 Tu ubicación');
+    }
+    return marcadorUsuario;
+}
+
+function quitarPuntoUsuario() {
+    if (marcadorUsuario) {
+        map.removeLayer(marcadorUsuario);
+        marcadorUsuario = null;
+    }
+}
+
 // Centra el mapa en donde está el usuario, si da permiso.
 // El navegador siempre le pregunta antes; aquí no se puede forzar.
 function centrarUsuario() {
     if (!navigator.geolocation) return;   // navegador sin soporte
 
-    navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 14);
-
-        // Un punto azul, distinto de los marcadores de áreas para no confundir
-        L.circleMarker([latitude, longitude], {
-            radius: 10, fillColor: '#3b82f6', color: 'white',
-            weight: 3, fillOpacity: 1
-        }).addTo(map).bindPopup('📍 Tu ubicación').openPopup();
-    });
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const { latitude, longitude } = pos.coords;
+            map.setView([latitude, longitude], 14);
+            ponerPuntoUsuario(latitude, longitude).openPopup();
+        },
+        err => {
+            // Sin este aviso el botón parecía no hacer nada al fallar
+            const motivo = err && err.code === err.PERMISSION_DENIED
+                ? 'Diste permiso denegado para ver tu ubicación'
+                : 'No pudimos obtener tu ubicación';
+            alert(motivo + '. Revisa el permiso de ubicación del navegador; si usas VPN, apágala e intenta de nuevo.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
 }
 
 // ============================================================
@@ -175,11 +207,39 @@ function centrarUsuario() {
 // La ruta dibujada actualmente. Se guarda para poder borrarla antes de
 // dibujar otra: si no, se irían acumulando líneas encima del mapa.
 let rutaDibujada = null;
-let marcadorOrigen = null;
+
+// Identificador del seguimiento por GPS. Hay que guardarlo para poder
+// apagarlo: watchPosition deja el GPS despierto y eso gasta batería.
+let vigilanciaId = null;
 
 function limpiarRuta() {
-    if (rutaDibujada)   { map.removeLayer(rutaDibujada);   rutaDibujada = null; }
-    if (marcadorOrigen) { map.removeLayer(marcadorOrigen); marcadorOrigen = null; }
+    if (vigilanciaId !== null) {
+        navigator.geolocation.clearWatch(vigilanciaId);
+        vigilanciaId = null;
+    }
+    if (rutaDibujada) { map.removeLayer(rutaDibujada); rutaDibujada = null; }
+    quitarPuntoUsuario();
+}
+
+// Mantiene el punto azul pegado a donde va el usuario mientras camina.
+//
+// Solo se mueve el punto: la ruta se queda como se dibujó. Recalcularla en
+// cada paso gastaría la cuota de OpenRouteService en minutos —el límite son
+// 40 peticiones por minuto— y no le serviría de nada al usuario, porque el
+// camino no cambia mientras lo siga.
+function seguirUsuario() {
+    if (!navigator.geolocation || vigilanciaId !== null) return;
+
+    vigilanciaId = navigator.geolocation.watchPosition(
+        pos => {
+            if (!marcadorUsuario) return;   // la ruta ya se quitó
+            marcadorUsuario.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+        },
+        // Si el GPS falla a media caminata no se avisa nada: el punto
+        // simplemente se queda en la última posición conocida
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 5000 }
+    );
 }
 
 // Enlace a Google Maps con la ruta a pie ya planteada. Es el plan B de todo
@@ -208,15 +268,29 @@ function comoLlegar(id) {
         return;
     }
 
+    // Se borra la ruta anterior ANTES de pedir la ubicación, no después.
+    //
+    // Si no, el seguimiento por GPS de la ruta pasada sigue encendido y el
+    // nuevo getCurrentPosition se queda esperando turno: la pantalla se queda
+    // en "Buscando tu ubicación" hasta que vence el plazo de diez segundos, y
+    // parece que la página se trabó.
+    limpiarRuta();
+
     estado.textContent = '📍 Buscando tu ubicación…';
 
     navigator.geolocation.getCurrentPosition(
         pos => trazarRuta(pos.coords, area, marker, estado),
-        () => {
-            // El usuario negó el permiso, o el GPS no respondió
-            estado.innerHTML = `No pudimos obtener tu ubicación. <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
+        err => {
+            // El usuario negó el permiso, o el GPS no respondió a tiempo
+            const motivo = err && err.code === err.TIMEOUT
+                ? 'La ubicación tardó demasiado'
+                : 'No pudimos obtener tu ubicación';
+            estado.innerHTML = `${motivo}. <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        // maximumAge permite reutilizar una posición de hasta medio minuto en
+        // vez de despertar el GPS otra vez. Para trazar una ruta de kilómetros
+        // esa diferencia no importa, y la respuesta es inmediata.
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
 }
 
@@ -232,16 +306,15 @@ async function trazarRuta(coords, area, marker, estado) {
 
         if (!r.ok || !datos.ok) throw new Error(datos.error || 'Sin respuesta');
 
-        limpiarRuta();
-
         rutaDibujada = L.polyline(datos.linea, {
             color: '#3b82f6', weight: 5, opacity: 0.8
         }).addTo(map);
 
-        // Punto de partida, del mismo azul que la línea
-        marcadorOrigen = L.circleMarker([coords.latitude, coords.longitude], {
-            radius: 9, fillColor: '#3b82f6', color: 'white', weight: 3, fillOpacity: 1
-        }).addTo(map).bindPopup('📍 Tu ubicación');
+        // El mismo punto azul de siempre, movido al inicio del recorrido
+        ponerPuntoUsuario(coords.latitude, coords.longitude);
+
+        // A partir de aquí el punto azul sigue al usuario mientras camina
+        seguirUsuario();
 
         // Encuadra la ruta completa, con margen para que no quede pegada al borde
         map.fitBounds(rutaDibujada.getBounds(), { padding: [50, 50] });
@@ -251,6 +324,7 @@ async function trazarRuta(coords, area, marker, estado) {
 
         estado.innerHTML = `
             <div style="font-weight:700;">🚶 ${km} km · ${min} min caminando</div>
+            <div style="color:#6b7280;font-size:0.72rem;margin-top:2px;">Tu punto se mueve contigo mientras caminas.</div>
             <div style="margin-top:4px;">
                 <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Navegar en Google Maps</a>
                 · <a href="#" onclick="limpiarRuta();return false;">Quitar ruta</a>

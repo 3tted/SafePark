@@ -147,6 +147,6 @@ require_once '../includes/navbar.php';
         const AREAS_DB = <?= json_encode($areas_db) ?>;
         const API_URL  = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
-    <script src="archivo.js?v=7"></script>
+    <script src="archivo.js?v=9"></script>
 </body>
 </html>
