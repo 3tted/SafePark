@@ -222,7 +222,6 @@ SafePark/
 ├── Home/                           ← Dashboard principal
 │   ├── index.php
 │   ├── clima.php                   ← Proxy OpenWeatherMap
-│   ├── nominatim_proxy.php         ← Proxy Nominatim (autocompletado)
 │   └── style.css
 ├── Login/                          ← Autenticación
 │   ├── index.php

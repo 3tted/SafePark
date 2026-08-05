@@ -9,7 +9,7 @@
 // ============================================================
 
 // PHP inyecta las áreas ya listas en Mapa/index.php como un arreglo JSON.
-// El "typeof" evita que truene si por alguna razón no llegaran.
+// El "typeof" cubre el caso de que AREAS_DB no esté definida.
 const areas = typeof AREAS_DB !== 'undefined' ? AREAS_DB : [];
 
 // Se centra en Ciudad Juárez con un zoom que abarca toda la mancha urbana
@@ -146,8 +146,8 @@ function filtrarChip(el, tipo) {
 // El punto azul que marca dónde está el usuario.
 //
 // Es uno solo para toda la página, compartido entre el botón "Mi ubicación" y
-// el trazado de rutas. Antes cada uno creaba el suyo sin guardarlo, así que se
-// iban acumulando puntos encima del mapa y no había forma de quitarlos.
+// el trazado de rutas. Guardarlo en esta variable permite moverlo y quitarlo
+// en vez de ir dejando marcadores sueltos por el mapa.
 let marcadorUsuario = null;
 
 // Lo coloca la primera vez y de ahí en adelante solo lo mueve
@@ -182,7 +182,7 @@ function centrarUsuario() {
             ponerPuntoUsuario(latitude, longitude).openPopup();
         },
         err => {
-            // Sin este aviso el botón parecía no hacer nada al fallar
+            // Avisa por qué falló, distinguiendo el permiso denegado del resto
             const motivo = err && err.code === err.PERMISSION_DENIED
                 ? 'Diste permiso denegado para ver tu ubicación'
                 : 'No pudimos obtener tu ubicación';
@@ -268,12 +268,9 @@ function comoLlegar(id) {
         return;
     }
 
-    // Se borra la ruta anterior ANTES de pedir la ubicación, no después.
-    //
-    // Si no, el seguimiento por GPS de la ruta pasada sigue encendido y el
-    // nuevo getCurrentPosition se queda esperando turno: la pantalla se queda
-    // en "Buscando tu ubicación" hasta que vence el plazo de diez segundos, y
-    // parece que la página se trabó.
+    // La ruta anterior se borra ANTES de pedir la ubicación, no después:
+    // limpiarRuta() apaga el watchPosition, y mientras uno siga encendido el
+    // getCurrentPosition nuevo queda esperando turno hasta agotar su plazo.
     limpiarRuta();
 
     estado.textContent = '📍 Buscando tu ubicación…';

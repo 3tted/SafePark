@@ -25,13 +25,11 @@ $es_admin = isset($_SESSION['id_usuario']) && es_admin();
 </nav>
 
 <style>
-/* Los avisos flotan por encima del contenido en vez de ocupar su propio
-   renglón. Antes empujaban la página hacia abajo al aparecer y la encogían al
-   irse, y el mapa tenía que recalcular su tamaño las dos veces: se veía el
-   salto. Sacándolos del flujo, nada de lo que hay debajo se entera.
+/* Los avisos flotan sobre el contenido, fuera del flujo: así aparecer o
+   desaparecer no cambia la altura de la página ni obliga al mapa a recalcular.
 
-   El "top" no se pone aquí sino desde el script, porque en móvil el navbar
-   cambia de alto (height:auto con flex-wrap) y un valor fijo no le atina. */
+   El "top" lo pone el script, no esta hoja: en móvil el navbar es de alto
+   variable (height:auto con flex-wrap) y un valor fijo no le atina. */
 [class^="msg-ok"], [class^="msg-err"] {
     position: fixed;
     left: 50%;
@@ -48,16 +46,13 @@ $es_admin = isset($_SESSION['id_usuario']) && es_admin();
 </style>
 
 <script>
-// Los avisos de "guardado correctamente" viven en la URL: al guardar, PHP
-// redirige a  index.php?exito=1  y el mensaje se pinta mientras ese parámetro
-// siga ahí. Sin esto se quedaba puesto para siempre, y al recargar la página
-// volvía a salir aunque no hubieras guardado nada.
+// Los avisos de "guardado correctamente" viven en la URL: PHP redirige a
+// index.php?exito=1 y el mensaje se pinta mientras ese parámetro siga ahí.
+// Esta función lo quita de la URL y desvanece el aviso.
 //
-// Va en el navbar porque todas las páginas que muestran avisos lo incluyen:
-// un solo arreglo las cubre todas.
-// Hay que esperar a que la página termine de leerse: el navbar se incluye
-// ARRIBA del aviso, así que en el momento en que este script corre el aviso
-// todavía no existe en el documento y una búsqueda inmediata no encuentra nada.
+// Va en el navbar porque todas las páginas que muestran avisos lo incluyen.
+// El navbar se incluye ARRIBA del aviso, así que la función se ejecuta hasta
+// DOMContentLoaded: antes de eso el aviso todavía no existe en el documento.
 function limpiarAvisos() {
     // Todas las clases de aviso empiezan igual: msg-ok, msg-ok-mapa,
     // msg-err-feed, msg-err-global...

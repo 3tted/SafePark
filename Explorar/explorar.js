@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) { btn.textContent = '♥'; btn.classList.add('fav-active'); }
             });
         })
-        // Si falla, los corazones quedan vacíos: molesto pero no rompe la página
+        // Si falla, los corazones quedan vacíos: no es crítico
         .catch(() => {});
 });
 
@@ -239,9 +239,7 @@ function abrirModalArea(el) {
                 el.innerHTML = '<div class="modal-sin-reportes">📋 Sin reportes para esta área todavía.</div>';
                 return;
             }
-            // Se guardan todos y se pinta la primera página. Antes se cortaban
-            // con slice(0,5) y los demás no había forma de verlos: un área con
-            // doce reportes solo enseñaba cinco.
+            // Se guardan todos y se pinta la primera página
             reportesDelArea = reportes;
             paginaReportes  = 1;
             pintarReportes();

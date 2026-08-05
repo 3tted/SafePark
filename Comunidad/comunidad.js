@@ -38,9 +38,8 @@ function togglePicker(btn) {
     pickerActivo = btn;
 
     // El botón se guarda en una constante local en vez de leer pickerActivo al
-    // elegir el emoji. En pantallas táctiles el detector de "clic fuera" puede
-    // adelantarse a la selección y dejar pickerActivo en null; entonces la
-    // reacción fallaba en silencio y había que tocar dos veces.
+    // elegir el emoji: en pantallas táctiles el detector de "clic fuera" puede
+    // adelantarse a la selección y dejar pickerActivo en null.
     const destino = btn;
 
     pickerEl = new EmojiMart.Picker({
@@ -75,8 +74,8 @@ function cerrarPicker() {
 
 document.addEventListener('click', e => {
     if (!pickerActivo) return;
-    // e.target puede no ser un elemento (nodo de texto); sin esta comprobación
-    // el detector truena y deja el picker pegado en pantalla.
+    // e.target puede ser un nodo de texto y no un elemento, así que hay que
+    // comprobarlo antes de usar .closest()
     const el = e.target instanceof Element ? e.target : null;
     if (!el) return;
     if (!el.closest('em-emoji-picker') && !el.classList.contains('reaction-add')) {

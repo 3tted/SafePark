@@ -79,8 +79,8 @@ function api_get(string $endpoint): array {
  *
  * Cada llamada al API cuesta cerca de un segundo, casi todo en el saludo TLS y
  * el viaje de ida y vuelta al servidor. Una página como Comunidad necesita
- * cinco, y hacerlas en fila tardaba unos cuatro segundos. Lanzándolas en
- * paralelo el costo total es el de la más lenta.
+ * cinco: en fila serían unos cuatro segundos, mientras que en paralelo el
+ * costo total es el de la más lenta.
  *
  * Recibe un arreglo ['clave' => '/endpoint'] y devuelve ['clave' => resultado],
  * conservando las claves para que la página lea cada respuesta por su nombre.

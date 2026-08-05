@@ -15,7 +15,8 @@ require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
-// Las cinco consultas se lanzan juntas: en fila tardaban ~4s, así ~0.8s
+// Las cinco consultas se lanzan juntas para no sumar latencias: ~0.8s en
+// paralelo contra ~4s una tras otra
 $datos = api_get_multi([
     'reportes'   => '/reportes',
     'eventos'    => '/eventos',
@@ -45,8 +46,7 @@ foreach ($eventos_api as $e) {
         'usuario'=>$e['usuario'],'area'=>$e['area']];
 }
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
-// Antes se cortaba en 10 y el resto no había forma de verlo. Ahora se pintan
-// todos y el JavaScript los reparte en páginas, así que nada queda escondido.
+// Se pintan todas las publicaciones; el JavaScript las reparte en páginas.
 
 // Reacciones agrupadas, indexadas por publicación para pintarlas en el feed
 $reacciones_db = [];
