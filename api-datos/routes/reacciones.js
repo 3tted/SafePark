@@ -5,10 +5,10 @@
 //  y la columna que no aplica queda en NULL. De ahí el operador <=>, que en
 //  MySQL sí considera iguales dos NULL (con "=" nunca coincidirían).
 //
-//  Dato importante de la base: la columna emoji usa la colación utf8mb4_bin.
-//  Con la colación normal (utf8mb4_general_ci) MySQL considera que TODOS los
-//  emojis son el mismo carácter, así que al buscar 😍 encontraba un 😀 guardado,
-//  creía que ya existía y lo borraba en vez de agregar el nuevo.
+//  Dato importante de la base: la columna emoji usa la colación utf8mb4_bin,
+//  que compara byte a byte. Con la colación normal (utf8mb4_general_ci) MySQL
+//  considera que TODOS los emojis son el mismo carácter, y las consultas de
+//  abajo dejarían de distinguir uno de otro.
 // ============================================================
 
 const router = require('express').Router();

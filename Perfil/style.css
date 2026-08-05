@@ -299,8 +299,7 @@
 }
 
 /* ===== Móvil =====
-   La página no tenía ninguna regla responsive: el layout de dos columnas
-   (300px + resto) desbordaba la pantalla y el encabezado quedaba apretado. */
+   Las dos columnas (300px + resto) pasan a una sola. */
 @media (max-width: 768px) {
     .perfil-hero {
         padding: 24px 16px;

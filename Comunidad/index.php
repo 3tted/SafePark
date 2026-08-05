@@ -15,7 +15,8 @@ require_once '../includes/auth.php';
 require_once '../includes/api.php';
 requiere_sesion();
 
-// Las cinco consultas se lanzan juntas: en fila tardaban ~4s, así ~0.8s
+// Las cinco consultas se lanzan juntas para no sumar latencias: ~0.8s en
+// paralelo contra ~4s una tras otra
 $datos = api_get_multi([
     'reportes'   => '/reportes',
     'eventos'    => '/eventos',
@@ -45,7 +46,7 @@ foreach ($eventos_api as $e) {
         'usuario'=>$e['usuario'],'area'=>$e['area']];
 }
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
-$actividad = array_slice($actividad, 0, 10);
+// Se pintan todas las publicaciones; el JavaScript las reparte en páginas.
 
 // Reacciones agrupadas, indexadas por publicación para pintarlas en el feed
 $reacciones_db = [];
@@ -154,6 +155,9 @@ require_once '../includes/navbar.php';
                     </div>
                 </div>
                 <?php endforeach; ?>
+
+                <!-- Aquí el JavaScript dibuja los botones de página -->
+                <div id="paginacion-feed"></div>
 
                 <?php if ($i === 0): ?>
                 <div style="text-align:center;padding:40px;color:var(--muted);">
