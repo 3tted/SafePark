@@ -45,7 +45,8 @@ foreach ($eventos_api as $e) {
         'usuario'=>$e['usuario'],'area'=>$e['area']];
 }
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
-$actividad = array_slice($actividad, 0, 10);
+// Antes se cortaba en 10 y el resto no había forma de verlo. Ahora se pintan
+// todos y el JavaScript los reparte en páginas, así que nada queda escondido.
 
 // Reacciones agrupadas, indexadas por publicación para pintarlas en el feed
 $reacciones_db = [];
@@ -154,6 +155,9 @@ require_once '../includes/navbar.php';
                     </div>
                 </div>
                 <?php endforeach; ?>
+
+                <!-- Aquí el JavaScript dibuja los botones de página -->
+                <div id="paginacion-feed"></div>
 
                 <?php if ($i === 0): ?>
                 <div style="text-align:center;padding:40px;color:var(--muted);">

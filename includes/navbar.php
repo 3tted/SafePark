@@ -23,3 +23,77 @@ $es_admin = isset($_SESSION['id_usuario']) && es_admin();
         <a class="btn-nav" href="<?= $nav_base ?>Login/logout.php">Cerrar sesión</a>
     </div>
 </nav>
+
+<style>
+/* Los avisos flotan por encima del contenido en vez de ocupar su propio
+   renglón. Antes empujaban la página hacia abajo al aparecer y la encogían al
+   irse, y el mapa tenía que recalcular su tamaño las dos veces: se veía el
+   salto. Sacándolos del flujo, nada de lo que hay debajo se entera.
+
+   El "top" no se pone aquí sino desde el script, porque en móvil el navbar
+   cambia de alto (height:auto con flex-wrap) y un valor fijo no le atina. */
+[class^="msg-ok"], [class^="msg-err"] {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;                    /* el mapa y sus botones usan 1000 */
+    margin: 0;
+    width: max-content;
+    max-width: min(92vw, 560px);
+    padding: 12px 22px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    text-align: center;
+}
+</style>
+
+<script>
+// Los avisos de "guardado correctamente" viven en la URL: al guardar, PHP
+// redirige a  index.php?exito=1  y el mensaje se pinta mientras ese parámetro
+// siga ahí. Sin esto se quedaba puesto para siempre, y al recargar la página
+// volvía a salir aunque no hubieras guardado nada.
+//
+// Va en el navbar porque todas las páginas que muestran avisos lo incluyen:
+// un solo arreglo las cubre todas.
+// Hay que esperar a que la página termine de leerse: el navbar se incluye
+// ARRIBA del aviso, así que en el momento en que este script corre el aviso
+// todavía no existe en el documento y una búsqueda inmediata no encuentra nada.
+function limpiarAvisos() {
+    // Todas las clases de aviso empiezan igual: msg-ok, msg-ok-mapa,
+    // msg-err-feed, msg-err-global...
+    const avisos = document.querySelectorAll('[class^="msg-ok"], [class^="msg-err"]');
+    if (!avisos.length) return;
+
+    // El navbar queda pegado arriba, así que el aviso se coloca justo debajo.
+    // Se mide en vez de suponer 60px porque en móvil crece al acomodarse
+    // en varios renglones.
+    const nav = document.querySelector('.navbar');
+    const abajoDelNav = (nav ? nav.getBoundingClientRect().height : 60) + 12;
+    avisos.forEach(a => a.style.top = abajoDelNav + 'px');
+
+    // Se limpian los parámetros de la URL sin recargar, para que al refrescar
+    // no reaparezca el mensaje
+    const url = new URL(window.location);
+    if (url.searchParams.has('exito') || url.searchParams.has('error')) {
+        url.searchParams.delete('exito');
+        url.searchParams.delete('error');
+        history.replaceState(null, '', url);
+    }
+
+    // Y se desvanecen solos. Cuatro segundos alcanzan para leerlos.
+    setTimeout(() => {
+        avisos.forEach(a => {
+            a.style.transition = 'opacity .4s';
+            a.style.opacity = '0';
+            // Se quita del flujo al terminar, para que no deje un hueco
+            setTimeout(() => a.remove(), 400);
+        });
+    }, 4000);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', limpiarAvisos);
+} else {
+    limpiarAvisos();   // por si el navbar se incluyera al final de la página
+}
+</script>

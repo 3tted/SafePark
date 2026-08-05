@@ -239,30 +239,102 @@ function abrirModalArea(el) {
                 el.innerHTML = '<div class="modal-sin-reportes">📋 Sin reportes para esta área todavía.</div>';
                 return;
             }
-            el.innerHTML = reportes.slice(0, 5).map(r => {
-                const tipo   = r.tipo || 'incidente';
-                const icon   = iconosTipo[tipo]  || '📋';
-                const bg     = bgsTipo[tipo]     || '#f3f4f6';
-                const label  = labelsTipo[tipo]  || tipo;
-                const fecha  = new Date(r.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
-                const fotoHtml = r.foto
-                    ? `<img src="../Assets/fotos/${r.foto}" alt="foto" class="modal-reporte-foto">`
-                    : '';
-                return `
-                    <div class="modal-reporte-item">
-                        <div class="modal-reporte-icon" style="background:${bg}">${icon}</div>
-                        <div class="modal-reporte-info">
-                            <div class="modal-reporte-tipo">${label}</div>
-                            <div class="modal-reporte-desc">${r.descripcion}</div>
-                            <div class="modal-reporte-fecha">${fecha}</div>
-                            ${fotoHtml}
-                        </div>
-                    </div>`;
-            }).join('');
+            // Se guardan todos y se pinta la primera página. Antes se cortaban
+            // con slice(0,5) y los demás no había forma de verlos: un área con
+            // doce reportes solo enseñaba cinco.
+            reportesDelArea = reportes;
+            paginaReportes  = 1;
+            pintarReportes();
         })
         .catch(() => {
             document.getElementById('modal-reportes').innerHTML = '<div class="modal-sin-reportes">No se pudieron cargar los reportes.</div>';
         });
+}
+
+// ============================================================
+//  Paginado de los reportes del modal
+//
+//  Los reportes ya vienen todos en la misma respuesta del API, así que
+//  cambiar de página no vuelve a pedir nada: solo repinta.
+// ============================================================
+
+let reportesDelArea = [];    // todos los del área abierta
+let paginaReportes  = 1;
+const REPORTES_POR_PAGINA = 5;
+
+function pintarReportes() {
+    const el = document.getElementById('modal-reportes');
+    const paginas = Math.ceil(reportesDelArea.length / REPORTES_POR_PAGINA);
+
+    const desde = (paginaReportes - 1) * REPORTES_POR_PAGINA;
+    const enEstaPagina = reportesDelArea.slice(desde, desde + REPORTES_POR_PAGINA);
+
+    const items = enEstaPagina.map(r => {
+        const tipo   = r.tipo || 'incidente';
+        const icon   = iconosTipo[tipo]  || '📋';
+        const bg     = bgsTipo[tipo]     || '#f3f4f6';
+        const label  = labelsTipo[tipo]  || tipo;
+        const fecha  = new Date(r.fecha).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+        const fotoHtml = r.foto
+            ? `<img src="../Assets/fotos/${r.foto}" alt="foto" class="modal-reporte-foto">`
+            : '';
+        return `
+            <div class="modal-reporte-item">
+                <div class="modal-reporte-icon" style="background:${bg}">${icon}</div>
+                <div class="modal-reporte-info">
+                    <div class="modal-reporte-tipo">${label}</div>
+                    <div class="modal-reporte-desc">${r.descripcion}</div>
+                    <div class="modal-reporte-fecha">${fecha}</div>
+                    ${fotoHtml}
+                </div>
+            </div>`;
+    }).join('');
+
+    // Con una sola página no se dibuja nada: los botones sobrarían
+    const barra = paginas > 1 ? construirPaginacion(paginas) : '';
+
+    el.innerHTML = items + barra;
+}
+
+// Botones de página. Con muchas páginas se muestran solo las cercanas a la
+// actual para que la fila no se desborde en pantallas chicas.
+function construirPaginacion(paginas) {
+    const botones = [];
+
+    botones.push(`<button class="pag-btn pag-flecha" onclick="irAPaginaReportes(${paginaReportes - 1})"
+                   ${paginaReportes === 1 ? 'disabled' : ''}>‹</button>`);
+
+    for (let p = 1; p <= paginas; p++) {
+        // Siempre la primera, la última y las vecinas de la actual
+        const cerca = Math.abs(p - paginaReportes) <= 1;
+        if (p === 1 || p === paginas || cerca) {
+            botones.push(`<button class="pag-btn ${p === paginaReportes ? 'activa' : ''}"
+                           onclick="irAPaginaReportes(${p})">${p}</button>`);
+        } else if (p === paginaReportes - 2 || p === paginaReportes + 2) {
+            botones.push('<span class="pag-puntos">…</span>');
+        }
+    }
+
+    botones.push(`<button class="pag-btn pag-flecha" onclick="irAPaginaReportes(${paginaReportes + 1})"
+                   ${paginaReportes === paginas ? 'disabled' : ''}>›</button>`);
+
+    const primero = (paginaReportes - 1) * REPORTES_POR_PAGINA + 1;
+    const ultimo  = Math.min(paginaReportes * REPORTES_POR_PAGINA, reportesDelArea.length);
+
+    return `<div class="paginacion">
+                <div class="pag-botones">${botones.join('')}</div>
+                <div class="pag-cuenta">${primero}-${ultimo} de ${reportesDelArea.length}</div>
+            </div>`;
+}
+
+function irAPaginaReportes(p) {
+    const paginas = Math.ceil(reportesDelArea.length / REPORTES_POR_PAGINA);
+    if (p < 1 || p > paginas) return;
+    paginaReportes = p;
+    pintarReportes();
+    // Sube al inicio de la lista: si no, al cambiar de página quedas viendo
+    // la mitad de los reportes nuevos
+    document.getElementById('modal-reportes').scrollIntoView({ block: 'nearest' });
 }
 
 function cerrarModalArea() {

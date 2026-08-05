@@ -220,3 +220,80 @@ function enviarComentario(sendBtn) {
         .catch(() => {})
         .finally(() => { sendBtn.disabled = false; });
 }
+
+// ============================================================
+//  Paginado del feed de actividad
+//
+//  PHP pinta todas las publicaciones de una vez y aquí se van mostrando de
+//  diez en diez. No se piden más datos al cambiar de página: solo se ocultan
+//  y se muestran las que ya están en el documento.
+//
+//  Se hace así, y no cortando en PHP, porque las publicaciones traen sus
+//  reacciones y su caja de comentarios ya armadas; volver a pedirlas al
+//  servidor en cada página significaría rehacer todo eso.
+// ============================================================
+
+const FEED_POR_PAGINA = 10;
+let paginaFeed = 1;
+
+function itemsDelFeed() {
+    // Solo las del panel de actividad: los otros paneles (eventos, logros)
+    // tienen su propia lista y no se paginan
+    const panel = document.getElementById('tab-actividad');
+    return panel ? panel.querySelectorAll('.feed-item') : [];
+}
+
+function pintarPaginaFeed() {
+    const items = itemsDelFeed();
+    const paginas = Math.ceil(items.length / FEED_POR_PAGINA);
+
+    const desde = (paginaFeed - 1) * FEED_POR_PAGINA;
+    const hasta = desde + FEED_POR_PAGINA;
+    items.forEach((el, i) => {
+        el.style.display = (i >= desde && i < hasta) ? '' : 'none';
+    });
+
+    const barra = document.getElementById('paginacion-feed');
+    if (!barra) return;
+
+    // Con diez o menos publicaciones no hace falta ningún botón
+    if (paginas <= 1) { barra.innerHTML = ''; return; }
+
+    const botones = [];
+    botones.push(`<button class="pag-btn pag-flecha" onclick="irAPaginaFeed(${paginaFeed - 1})"
+                   ${paginaFeed === 1 ? 'disabled' : ''}>‹</button>`);
+
+    for (let p = 1; p <= paginas; p++) {
+        // La primera, la última y las vecinas de la actual; el resto se
+        // resume con puntos suspensivos para que la fila no se desborde
+        if (p === 1 || p === paginas || Math.abs(p - paginaFeed) <= 1) {
+            botones.push(`<button class="pag-btn ${p === paginaFeed ? 'activa' : ''}"
+                           onclick="irAPaginaFeed(${p})">${p}</button>`);
+        } else if (p === paginaFeed - 2 || p === paginaFeed + 2) {
+            botones.push('<span class="pag-puntos">…</span>');
+        }
+    }
+
+    botones.push(`<button class="pag-btn pag-flecha" onclick="irAPaginaFeed(${paginaFeed + 1})"
+                   ${paginaFeed === paginas ? 'disabled' : ''}>›</button>`);
+
+    const primero = desde + 1;
+    const ultimo  = Math.min(hasta, items.length);
+
+    barra.innerHTML = `<div class="paginacion">
+            <div class="pag-botones">${botones.join('')}</div>
+            <div class="pag-cuenta">${primero}-${ultimo} de ${items.length} publicaciones</div>
+        </div>`;
+}
+
+function irAPaginaFeed(p) {
+    const paginas = Math.ceil(itemsDelFeed().length / FEED_POR_PAGINA);
+    if (p < 1 || p > paginas) return;
+    paginaFeed = p;
+    pintarPaginaFeed();
+    // Sube al principio del feed: si no, al cambiar de página quedas viendo
+    // el final de la lista nueva
+    document.getElementById('tab-actividad').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.addEventListener('DOMContentLoaded', pintarPaginaFeed);

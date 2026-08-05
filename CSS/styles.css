@@ -1,2 +1,74 @@
 @import url('base.css?v=3');
 @import url('navbar.css?v=4');
+
+/* ============================================================
+   Paginación — la usan el modal de Explorar y el feed de Comunidad
+   ============================================================ */
+
+.paginacion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 0 4px;
+    border-top: 1px solid #eee;
+    margin-top: 4px;
+}
+
+.pag-botones {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pag-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 7px;
+    font-family: Nunito, sans-serif;
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: #374151;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.pag-btn:hover:not(:disabled):not(.activa) {
+    background: #f3f4f6;
+    border-color: #c9c9c9;
+}
+
+.pag-btn.activa {
+    background: var(--g2, #2D6A4F);
+    border-color: var(--g2, #2D6A4F);
+    color: #fff;
+    cursor: default;
+}
+
+/* Las flechas de los extremos se apagan al llegar al principio o al final */
+.pag-btn:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.pag-flecha {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.pag-puntos {
+    padding: 0 2px;
+    color: #9ca3af;
+    font-weight: 700;
+}
+
+.pag-cuenta {
+    font-size: 0.76rem;
+    color: #6b7280;
+    font-weight: 600;
+}
