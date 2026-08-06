@@ -37,7 +37,7 @@
                 </div>
                 <div class="form-check">
                     <input type="checkbox" id="terminos" required>
-                    <label for="terminos">Acepto los terminos y condiciones</label>
+                    <label for="terminos">Acepto los términos y condiciones</label>
                 </div>
                 <?php if (isset($_GET['error'])): ?>
                     <?php if ($_GET['error'] === 'passwords'): ?>
@@ -51,7 +51,7 @@
                 <button class="btn-primary" type="submit">Crear cuenta</button>
             </form>
             <div class="form-footer">
-                Ya tienes cuenta? <a href="../Login/index.php">Inicia sesion</a>
+                ¿Ya tienes cuenta? <a href="../Login/index.php">Inicia sesión</a>
             </div>
         </div>
     </div>

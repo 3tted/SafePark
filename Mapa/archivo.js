@@ -90,6 +90,16 @@ areas.forEach(area => {
             </div>
         `);
 
+    // Leaflet vuelve a dibujar el popup desde su HTML original cada vez que se
+    // abre, así que el panel de la ruta se pierde al cerrarlo. Si esta área ya
+    // tiene una ruta trazada, se repinta con lo que se calculó antes: el
+    // usuario vuelve a donde estaba en vez de tener que empezar de nuevo.
+    marker.on('popupopen', () => {
+        if (!areaDeLaRuta || areaDeLaRuta.id !== area.id || !ultimoResultado) return;
+        const estado = panelDeRuta(marker);
+        if (estado) pintarResumenRuta(estado, area, ultimoResultado);
+    });
+
     // Se guarda la pareja área+marcador para poder relacionarlos después:
     // al tocar un renglón de la lista hay que saber qué marcador abrir
     marcadores.push({ area, marker });
@@ -212,6 +222,27 @@ let rutaDibujada = null;
 // apagarlo: watchPosition deja el GPS despierto y eso gasta batería.
 let vigilanciaId = null;
 
+// Cómo se va a llegar. El API acepta estos tres perfiles y ninguno más.
+//
+// La diferencia no es cosmética: una ruta a pie usa andadores y callejones que
+// un coche no puede tomar, así que el trazo y el tiempo cambian bastante.
+const PERFILES = {
+    'foot-walking':    { icono: '🚶', texto: 'a pie',    google: 'walking'   },
+    'driving-car':     { icono: '🚗', texto: 'en carro', google: 'driving'   },
+    'cycling-regular': { icono: '🚲', texto: 'en bici',  google: 'bicycling' },
+};
+
+let perfilRuta = 'driving-car';   // el que se usa por defecto
+
+// Se guardan para poder recalcular al cambiar de perfil sin volver a pedirle
+// la ubicación al navegador, que es lento y vuelve a mostrar el permiso.
+let ultimaUbicacion = null;
+let areaDeLaRuta    = null;
+
+// El último resultado del API, para poder repintar el panel cuando el usuario
+// cierra y vuelve a abrir el popup sin tener que pedir la ruta otra vez.
+let ultimoResultado = null;
+
 function limpiarRuta() {
     if (vigilanciaId !== null) {
         navigator.geolocation.clearWatch(vigilanciaId);
@@ -219,6 +250,45 @@ function limpiarRuta() {
     }
     if (rutaDibujada) { map.removeLayer(rutaDibujada); rutaDibujada = null; }
     quitarPuntoUsuario();
+
+    // Se olvida la ubicación guardada: si no, los botones de medio seguirían
+    // funcionando sobre una ruta que el usuario ya quitó
+    ultimaUbicacion = null;
+    areaDeLaRuta    = null;
+    ultimoResultado = null;
+}
+
+// Crea (o encuentra) el espacio dentro del popup donde se informa del avance
+// y se pintan los botones de medio de transporte.
+function panelDeRuta(marker) {
+    const popup = marker.getPopup() && marker.getPopup().getElement();
+    if (!popup) return null;
+
+    let estado = popup.querySelector('.sp-estado-ruta');
+    if (!estado) {
+        estado = document.createElement('div');
+        estado.className = 'sp-estado-ruta';
+        estado.style.cssText = 'margin-top:8px;font-size:0.78rem;color:#374151;';
+        popup.querySelector('.leaflet-popup-content').appendChild(estado);
+    }
+    return estado;
+}
+
+// Pinta el resumen de la ruta con sus botones. Se usa tanto al terminar de
+// calcularla como al reabrir el popup, para no obligar a empezar de nuevo.
+function pintarResumenRuta(estado, area, datos) {
+    const km  = (datos.distancia / 1000).toFixed(1);
+    const min = Math.round(datos.duracion / 60);
+    const p   = PERFILES[perfilRuta];
+
+    estado.innerHTML = `
+        <div style="font-weight:700;">${p.icono} ${km} km · ${min} min ${p.texto}</div>
+        <div style="margin:6px 0 4px;">${botonesPerfil()}</div>
+        <div style="color:#6b7280;font-size:0.72rem;">Tu punto se mueve contigo mientras avanzas.</div>
+        <div style="margin-top:4px;">
+            <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Navegar en Google Maps</a>
+            · <a href="#" onclick="limpiarRuta();return false;">Quitar ruta</a>
+        </div>`;
 }
 
 // Mantiene el punto azul pegado a donde va el usuario mientras camina.
@@ -242,10 +312,42 @@ function seguirUsuario() {
     );
 }
 
-// Enlace a Google Maps con la ruta a pie ya planteada. Es el plan B de todo
-// lo de abajo, y en celular abre la app con navegación por voz.
+// Enlace a Google Maps con la ruta ya planteada, en el mismo modo que se está
+// viendo aquí. Es el plan B de todo lo de abajo, y en celular abre la app con
+// navegación por voz.
 function enlaceGoogleMaps(area) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${area.lat},${area.lng}&travelmode=walking`;
+    const modo = (PERFILES[perfilRuta] || PERFILES['driving-car']).google;
+    return `https://www.google.com/maps/dir/?api=1&destination=${area.lat},${area.lng}&travelmode=${modo}`;
+}
+
+// Vuelve a trazar la misma ruta con otro medio de transporte.
+// Reutiliza la ubicación que ya se obtuvo: no vuelve a pedir permiso.
+function cambiarPerfilRuta(perfil) {
+    if (!PERFILES[perfil] || !ultimaUbicacion || !areaDeLaRuta) return;
+    perfilRuta = perfil;
+
+    const item = marcadores.find(m => m.area.id === areaDeLaRuta.id);
+    if (!item) return;
+    const estado = panelDeRuta(item.marker);
+    if (!estado) return;
+
+    // encuadrar = false: el mapa se queda donde está. Reencuadrar aquí movería
+    // la vista y cerraría el popup justo cuando el usuario está eligiendo.
+    trazarRuta(ultimaUbicacion, areaDeLaRuta, item.marker, estado, false);
+}
+
+// Los botones para cambiar de medio. El activo se marca y no hace nada.
+function botonesPerfil() {
+    return Object.entries(PERFILES).map(([clave, p]) => {
+        const activo = clave === perfilRuta;
+        return `<button onclick="cambiarPerfilRuta('${clave}')" ${activo ? 'disabled' : ''}
+            style="border:1px solid ${activo ? '#3b82f6' : '#d1d5db'};
+                   background:${activo ? '#3b82f6' : '#fff'};
+                   color:${activo ? '#fff' : '#374151'};
+                   border-radius:6px;padding:3px 8px;margin-right:4px;
+                   font-family:Nunito,sans-serif;font-size:0.72rem;font-weight:700;
+                   cursor:${activo ? 'default' : 'pointer'};">${p.icono}</button>`;
+    }).join('');
 }
 
 function comoLlegar(id) {
@@ -254,14 +356,8 @@ function comoLlegar(id) {
     const { area, marker } = item;
 
     // Espacio dentro del popup donde se irá informando del avance
-    const popup = marker.getPopup().getElement();
-    let estado = popup.querySelector('.sp-estado-ruta');
-    if (!estado) {
-        estado = document.createElement('div');
-        estado.className = 'sp-estado-ruta';
-        estado.style.cssText = 'margin-top:8px;font-size:0.78rem;color:#374151;';
-        popup.querySelector('.leaflet-popup-content').appendChild(estado);
-    }
+    const estado = panelDeRuta(marker);
+    if (!estado) return;
 
     if (!navigator.geolocation) {
         estado.innerHTML = `Tu navegador no comparte la ubicación. <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Abrir en Google Maps</a>`;
@@ -291,17 +387,28 @@ function comoLlegar(id) {
     );
 }
 
-async function trazarRuta(coords, area, marker, estado) {
+// encuadrar: sólo la primera vez. Al cambiar de medio de transporte el mapa
+// se queda como está, porque moverlo cerraría el popup que el usuario tiene
+// abierto justo para elegir.
+async function trazarRuta(coords, area, marker, estado, encuadrar = true) {
     estado.textContent = '🧭 Calculando la ruta…';
+
+    // Se recuerdan para poder recalcular al cambiar de medio de transporte
+    ultimaUbicacion = coords;
+    areaDeLaRuta    = area;
 
     const desde = `${coords.latitude},${coords.longitude}`;
     const hasta = `${area.lat},${area.lng}`;
 
     try {
-        const r = await fetch(`${API_URL}/rutas?desde=${desde}&hasta=${hasta}&perfil=foot-walking`);
+        const r = await fetch(`${API_URL}/rutas?desde=${desde}&hasta=${hasta}&perfil=${perfilRuta}`);
         const datos = await r.json();
 
         if (!r.ok || !datos.ok) throw new Error(datos.error || 'Sin respuesta');
+
+        // Se borra la anterior antes de dibujar: al cambiar de medio se vuelve
+        // a entrar aquí, y sin esto quedarían las dos líneas encimadas.
+        if (rutaDibujada) { map.removeLayer(rutaDibujada); rutaDibujada = null; }
 
         rutaDibujada = L.polyline(datos.linea, {
             color: '#3b82f6', weight: 5, opacity: 0.8
@@ -310,22 +417,16 @@ async function trazarRuta(coords, area, marker, estado) {
         // El mismo punto azul de siempre, movido al inicio del recorrido
         ponerPuntoUsuario(coords.latitude, coords.longitude);
 
-        // A partir de aquí el punto azul sigue al usuario mientras camina
+        // A partir de aquí el punto azul sigue al usuario mientras se mueve
         seguirUsuario();
 
         // Encuadra la ruta completa, con margen para que no quede pegada al borde
-        map.fitBounds(rutaDibujada.getBounds(), { padding: [50, 50] });
+        if (encuadrar) map.fitBounds(rutaDibujada.getBounds(), { padding: [50, 50] });
 
-        const km = (datos.distancia / 1000).toFixed(1);
-        const min = Math.round(datos.duracion / 60);
+        // Se guarda para poder repintar el panel al reabrir el popup
+        ultimoResultado = datos;
 
-        estado.innerHTML = `
-            <div style="font-weight:700;">🚶 ${km} km · ${min} min caminando</div>
-            <div style="color:#6b7280;font-size:0.72rem;margin-top:2px;">Tu punto se mueve contigo mientras caminas.</div>
-            <div style="margin-top:4px;">
-                <a href="${enlaceGoogleMaps(area)}" target="_blank" rel="noopener">Navegar en Google Maps</a>
-                · <a href="#" onclick="limpiarRuta();return false;">Quitar ruta</a>
-            </div>`;
+        pintarResumenRuta(estado, area, datos);
 
     } catch (e) {
         // Cualquier fallo del servicio de rutas termina aquí. El usuario no se

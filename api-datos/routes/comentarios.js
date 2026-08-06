@@ -11,6 +11,22 @@
 const router = require('express').Router();
 const db     = require('../db');
 
+// GET /api/comentarios/agrupadas — cuántos comentarios tiene cada publicación
+//
+// El feed de Comunidad necesita el número antes de que el usuario abra nada,
+// para poder escribirlo en el botón. Traerlos todos y contarlos en la página
+// significaría cargar el texto completo de cada comentario sin usarlo.
+//
+// Va antes que las demás rutas por costumbre de poner las específicas primero.
+router.get('/agrupadas', async (req, res) => {
+    const [filas] = await db.query(`
+        SELECT id_reporte, id_evento, COUNT(*) AS total
+        FROM COMENTARIO
+        GROUP BY id_reporte, id_evento
+    `);
+    res.json(filas);
+});
+
 // GET /api/comentarios?id_reporte=X  o  ?id_evento=X
 // Devuelve los comentarios de una publicación, del más viejo al más nuevo,
 // que es el orden natural de una conversación.
