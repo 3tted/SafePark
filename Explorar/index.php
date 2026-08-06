@@ -99,6 +99,18 @@ require_once '../includes/navbar.php';
                 $sem_cls = $score >= 70 ? 'sem-safe' : ($score >= 40 ? 'sem-warn' : 'sem-risk');
                 $sem_lbl = $score >= 70 ? '● Seguro' : ($score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
                 $foto_modal = $area['foto'] ? '../Assets/fotos/' . htmlspecialchars($area['foto']) : '';
+
+                // Contexto que acompaña al puntaje: cómo se compara esta área
+                // con las demás. El puntaje en sí no depende de las otras.
+                $n_rep    = $area['reportes']     ?? 0;
+                $posicion = $area['posicion']     ?? null;
+                $en_ciudad= $area['total_ciudad'] ?? 0;
+
+                $ordinal = ['', '1ª', '2ª', '3ª', '4ª', '5ª'];
+                $contexto = $n_rep === 0
+                    ? 'Sin reportes todavía'
+                    : ($ordinal[$posicion] ?? $posicion . 'ª') . ' área con más reportes · '
+                      . $n_rep . ' de ' . $en_ciudad . ' en la ciudad';
             ?>
                 <div class="ecard"
                     data-tipo="<?= $tipo ?>"
@@ -108,6 +120,7 @@ require_once '../includes/navbar.php';
                     data-direccion="<?= htmlspecialchars($area['direccion'] ?? '', ENT_QUOTES) ?>"
                     data-horario="<?= htmlspecialchars($area['horario'] ?? '', ENT_QUOTES) ?>"
                     data-score="<?= $score ?>"
+                    data-contexto="<?= htmlspecialchars($contexto, ENT_QUOTES) ?>"
                     data-foto="<?= htmlspecialchars($foto_modal, ENT_QUOTES) ?>"
                     onclick="abrirModalArea(this)">
                     <div class="ecard-img" style="<?= $imagen ?>"><?= $area['foto'] ? '' : $emoji ?></div>
@@ -117,6 +130,7 @@ require_once '../includes/navbar.php';
                         <div class="ecard-tags">
                             <span class="etag"><?= $emoji ?> <?= $label ?></span>
                         </div>
+                        <div class="ecard-contexto"><?= htmlspecialchars($contexto) ?></div>
                         <div class="ecard-foot">
                             <div class="semaforo <?= $sem_cls ?>"><?= $sem_lbl ?></div>
                             <button class="btn-fav" data-id="<?= $area['id_area'] ?>" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
@@ -153,6 +167,7 @@ require_once '../includes/navbar.php';
                         <div class="modal-area-meta" id="modal-horario" style="display:none;"></div>
                     </div>
                     <div class="semaforo" id="modal-semaforo"></div>
+                    <div class="modal-contexto" id="modal-contexto"></div>
                 </div>
 
                 <div class="modal-area-sec">Reportes recientes</div>

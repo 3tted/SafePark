@@ -31,16 +31,22 @@ router.get('/', async (req, res) => {
     `);
 
     const areas = filas.map(a => {
+        const n_incidentes  = Number(a.n_incidentes);
+        const n_condiciones = Number(a.n_condiciones);
+        const n_sugerencias = Number(a.n_sugerencias);
+
         // El semáforo parte de 100 y cada reporte lo va reduciendo un porcentaje.
         // Se multiplica en vez de restar para que el castigo sea proporcional:
         // el primer incidente pesa más que el décimo, y el score nunca baja de 0.
         //
-        // Un incidente quita 8% (queda el 92%), una condición 5%, una sugerencia 2%,
+        // Un incidente quita 3% (queda el 97%), una condición 2%, una sugerencia 1%,
         // porque no es lo mismo un robo que una banca rota o una idea de mejora.
+        // Con estos pesos hacen falta 12 incidentes para salir del verde y 31
+        // para llegar al rojo: un puñado de reportes no derrumba un área.
         const score = 100
-            * Math.pow(0.92, a.n_incidentes)
-            * Math.pow(0.95, a.n_condiciones)
-            * Math.pow(0.98, a.n_sugerencias);
+            * Math.pow(0.97, n_incidentes)
+            * Math.pow(0.98, n_condiciones)
+            * Math.pow(0.99, n_sugerencias);
 
         return {
             id:         a.id_area,
@@ -53,10 +59,33 @@ router.get('/', async (req, res) => {
             lng:        parseFloat(a.lng),
             foto:       a.foto ?? null,
             id_usuario: a.id_usuario,
+            reportes:   n_incidentes + n_condiciones + n_sugerencias,
             // Piso de 10: un área con muchísimos reportes tendería a 0, y un
             // cero absoluto daría a entender que no hay información
             score: Math.max(10, Math.round(score))
         };
+    });
+
+    // Contexto para acompañar al puntaje: cuántos reportes tiene el área frente
+    // al total de la ciudad, y en qué lugar queda comparada con las demás.
+    //
+    // El puntaje sigue calculándose por área y sin mirar a las otras: eso lo
+    // mantiene estable en el tiempo. Esto va aparte, sólo como referencia.
+    const totalCiudad = areas.reduce((suma, a) => suma + a.reportes, 0);
+
+    const conReportes = areas.filter(a => a.reportes > 0)
+                             .sort((x, y) => y.reportes - x.reportes);
+
+    // Las áreas empatadas comparten posición: dos con 8 reportes son ambas 1ª
+    let posicion = 0, anterior = null;
+    conReportes.forEach((a, i) => {
+        if (a.reportes !== anterior) { posicion = i + 1; anterior = a.reportes; }
+        a.posicion = posicion;
+    });
+
+    areas.forEach(a => {
+        a.total_ciudad = totalCiudad;
+        if (a.reportes === 0) a.posicion = null;   // sin reportes no hay ranking
     });
 
     res.json(areas);
