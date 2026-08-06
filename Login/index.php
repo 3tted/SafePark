@@ -18,11 +18,11 @@
             <p class="form-subtitle">Inicia sesion para explorar areas verdes seguras</p>
             <form action="login.php" method="POST">
                 <div class="form-group">
-                    <label class="form-label">Correo electronico</label>
+                    <label class="form-label">Correo electrónico</label>
                     <input class="form-input" type="email" name="email" placeholder="tucorreo@ejemplo.com" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Contrasena</label>
+                    <label class="form-label">Contraseña</label>
                     <input class="form-input" type="password" name="password" placeholder="........" required>
                 </div>
                 <?php

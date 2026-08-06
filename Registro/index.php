@@ -22,12 +22,12 @@
                     <input class="form-input" type="text" name="nombre" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Correo electronico</label>
+                    <label class="form-label">Correo electrónico</label>
                     <input class="form-input" type="email" name="email" placeholder="tucorreo@ejemplo.com" required>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label class="form-label">Contrasena</label>
+                        <label class="form-label">Contraseña</label>
                         <input class="form-input" type="password" name="password" placeholder="........" required>
                     </div>
                     <div class="form-group">

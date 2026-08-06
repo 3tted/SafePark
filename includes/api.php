@@ -41,7 +41,7 @@ function api_headers(): array {
     return $headers;
 }
 
-// Ejecuta la peticion y devuelve el JSON decodificado.
+// Ejecuta la petición y devuelve el JSON decodificado.
 // $metodo es POST, PUT o DELETE; $data null para DELETE.
 function api_request(string $metodo, string $endpoint, ?array $data = null): array {
     $ch = curl_init(api_url($endpoint));
