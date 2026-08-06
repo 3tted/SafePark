@@ -210,6 +210,9 @@ function abrirModalArea(el) {
     horEl.style.display  = el.dataset.horario   ? 'block' : 'none';
     document.getElementById('modal-semaforo').className = 'semaforo ' + semCls;
     document.getElementById('modal-semaforo').textContent = semLbl + ' · ' + score + '/100';
+
+    // Cómo se compara esta área con las demás de la ciudad
+    document.getElementById('modal-contexto').textContent = el.dataset.contexto || '';
     document.getElementById('modal-mapa-link').href = '../Mapa/index.php?area=' + id;
 
     // Si el área tiene foto se usa de portada; si no, un emoji según su tipo

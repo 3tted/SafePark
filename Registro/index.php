@@ -22,12 +22,12 @@
                     <input class="form-input" type="text" name="nombre" placeholder="Tu nombre" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Correo electronico</label>
+                    <label class="form-label">Correo electrónico</label>
                     <input class="form-input" type="email" name="email" placeholder="tucorreo@ejemplo.com" required>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label class="form-label">Contrasena</label>
+                        <label class="form-label">Contraseña</label>
                         <input class="form-input" type="password" name="password" placeholder="........" required>
                     </div>
                     <div class="form-group">
@@ -37,7 +37,7 @@
                 </div>
                 <div class="form-check">
                     <input type="checkbox" id="terminos" required>
-                    <label for="terminos">Acepto los terminos y condiciones</label>
+                    <label for="terminos">Acepto los términos y condiciones</label>
                 </div>
                 <?php if (isset($_GET['error'])): ?>
                     <?php if ($_GET['error'] === 'passwords'): ?>
@@ -51,7 +51,7 @@
                 <button class="btn-primary" type="submit">Crear cuenta</button>
             </form>
             <div class="form-footer">
-                Ya tienes cuenta? <a href="../Login/index.php">Inicia sesion</a>
+                ¿Ya tienes cuenta? <a href="../Login/index.php">Inicia sesión</a>
             </div>
         </div>
     </div>

@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    // La contrasena se verifica en el API; aqui solo llega el resultado
+    // La contraseña se verifica en el API; aquí solo llega el resultado
     $r = api_post('/auth/login', ['email' => $email, 'password' => $password]);
 
     if (!empty($r['ok'])) {

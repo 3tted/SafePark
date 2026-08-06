@@ -104,14 +104,21 @@ require_once '../includes/navbar.php';
                 <tbody>
                 <?php if (empty($reportes)): ?>
                     <tr><td colspan="8" class="tabla-vacia">No hay reportes aún.</td></tr>
-                <?php else: foreach ($reportes as $r):
+                <?php else:
+                    // La columna "#" numera las filas de la tabla, no muestra el
+                    // id de la base. Los id llevan huecos en cuanto se borra un
+                    // reporte —es normal en un AUTO_INCREMENT— y verlos aquí daba
+                    // a entender que hay más reportes de los que hay.
+                    $fila = 0;
+                    foreach ($reportes as $r):
+                        $fila++;
                         $tag = $tags_estado[$r['estado']] ?? '';
                         $label = $labels_estado[$r['estado']] ?? $r['estado'];
                         $tipo_label = $labels_tipo[$r['tipo']] ?? $r['tipo'];
                         $fecha = date('d/m/Y H:i', strtotime($r['fecha']));
                 ?>
                     <tr>
-                        <td><?= $r['id_reporte'] ?></td>
+                        <td><?= $fila ?></td>
                         <td><?= $tipo_label ?></td>
                         <td><?= htmlspecialchars($r['usuario']) ?></td>
                         <td><?= htmlspecialchars($r['area']) ?></td>
@@ -150,12 +157,15 @@ require_once '../includes/navbar.php';
                 <tbody>
                 <?php if (empty($usuarios)): ?>
                     <tr><td colspan="6" class="tabla-vacia">No hay usuarios.</td></tr>
-                <?php else: foreach ($usuarios as $u):
+                <?php else:
+                    $fila = 0;
+                    foreach ($usuarios as $u):
+                        $fila++;
                         $fecha_u = date('d/m/Y', strtotime($u['fecha_registro'] ?? 'now'));
                         $email_u = $u['email'] ?? '—';
                 ?>
                     <tr>
-                        <td><?= $u['id_usuario'] ?></td>
+                        <td><?= $fila ?></td>
                         <td><?= htmlspecialchars($u['nombre']) ?></td>
                         <td><?= htmlspecialchars($email_u) ?></td>
                         <td>
@@ -195,9 +205,13 @@ require_once '../includes/navbar.php';
                 <tbody>
                 <?php if (empty($areas_admin)): ?>
                     <tr><td colspan="6" class="tabla-vacia">No hay áreas.</td></tr>
-                <?php else: foreach ($areas_admin as $a): ?>
+                <?php else:
+                    $fila = 0;
+                    foreach ($areas_admin as $a):
+                        $fila++;
+                ?>
                     <tr>
-                        <td><?= $a['id'] ?></td>
+                        <td><?= $fila ?></td>
                         <td><?= htmlspecialchars($a['nombre']) ?></td>
                         <td><?= htmlspecialchars($a['colonia'] ?? '—') ?></td>
                         <td><?= htmlspecialchars($a['tipo'] ?? '—') ?></td>
@@ -225,6 +239,6 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Panel Admin · Ciudad Juárez</div>
 
-    <script src="admin.js"></script>
+    <script src="admin.js?v=2"></script>
 </body>
 </html>

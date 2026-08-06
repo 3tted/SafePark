@@ -523,3 +523,17 @@
     font-size: 0.75rem;
     color: var(--muted);
 }
+
+/* Contexto que acompaña al puntaje: cómo se compara el área con las demás */
+.ecard-contexto {
+    font-size: 0.72rem;
+    color: var(--muted, #6b7280);
+    margin: 6px 0 2px;
+    line-height: 1.35;
+}
+
+.modal-contexto {
+    font-size: 0.78rem;
+    color: var(--muted, #6b7280);
+    margin-top: 6px;
+}

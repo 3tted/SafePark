@@ -5,9 +5,9 @@ const soloPHP = require('../middleware/solo_php');
 
 // POST /api/auth/login — verifica credenciales
 //
-// La contrasena se compara aqui y nunca sale del API: el PHP solo recibe
-// "si o no" mas los datos del usuario. Los hashes de PHP ($2y$) y los de
-// bcryptjs son compatibles, asi que los usuarios ya registrados entran igual.
+// La contraseña se compara aquí y nunca sale del API: el PHP solo recibe
+// "sí o no" más los datos del usuario. Los hashes de PHP ($2y$) y los de
+// bcryptjs son compatibles, así que los usuarios ya registrados entran igual.
 router.post('/login', soloPHP, async (req, res) => {
     const { email, password } = req.body;
 

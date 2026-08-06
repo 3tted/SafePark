@@ -215,6 +215,14 @@ function enviarComentario(sendBtn) {
             lista_el.insertAdjacentHTML('beforeend', comentarioHTML(data.comentario));
             lista_el.scrollTop = lista_el.scrollHeight;
             input.value = '';
+
+            // El botón lleva el número de comentarios: se le suma el nuevo para
+            // que coincida con lo que se acaba de ver, sin recargar la página.
+            const boton = section.parentElement.querySelector('.comment-toggle-btn');
+            if (boton) {
+                const actual = parseInt((boton.textContent.match(/\((\d+)\)/) || [])[1] || 0);
+                boton.textContent = `💬 Comentarios (${actual + 1})`;
+            }
         })
         .catch(() => {})
         .finally(() => { sendBtn.disabled = false; });

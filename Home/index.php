@@ -43,17 +43,17 @@ require_once '../includes/navbar.php';
 
     <div class="hero">
         <div class="hero-content">
-            <h1>Explora areas verdes<br><span>seguras en Juarez</span></h1>
-            <p>Descubre parques y plazas evaluados por la comunidad con un semaforo de seguridad en tiempo real.</p>
+            <h1>Explora áreas verdes<br><span>seguras en Juárez</span></h1>
+            <p>Descubre parques y plazas evaluados por la comunidad con un semáforo de seguridad en tiempo real.</p>
             <div style="position:relative;width:100%;max-width:420px;">
                 <div class="search-bar">
-                    <input type="text" id="home-busqueda" placeholder="Buscar area verde, colonia..." oninput="mostrarSugerenciasHome()" onkeydown="if(event.key==='Enter') irABuscar()" autocomplete="off">
+                    <input type="text" id="home-busqueda" placeholder="Buscar área verde, colonia..." oninput="mostrarSugerenciasHome()" onkeydown="if(event.key==='Enter') irABuscar()" autocomplete="off">
                     <button onclick="irABuscar()">Buscar</button>
                 </div>
                 <div class="sugerencias-box-home" id="sugerencias-box-home" style="display:none;"></div>
             </div>
             <div class="hero-stats">
-                <div class="stat"><div class="stat-n"><?= $total_areas ?></div><div class="stat-l">Areas registradas</div></div>
+                <div class="stat"><div class="stat-n"><?= $total_areas ?></div><div class="stat-l">Áreas registradas</div></div>
                 <div class="stat"><div class="stat-n"><?= $total_reportes ?></div><div class="stat-l">Reportes</div></div>
                 <div class="stat"><div class="stat-n"><?= $total_usuarios ?></div><div class="stat-l">Usuarios</div></div>
             </div>
