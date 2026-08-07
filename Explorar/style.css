@@ -219,6 +219,14 @@
     font-weight: 700;
 }
 
+/* El puntaje dentro de la insignia: mismo color, un poco más tenue, para que
+   se lea como un dato secundario del nivel y no como otra etiqueta */
+.sem-score {
+    font-weight: 800;
+    opacity: .72;
+    margin-left: 2px;
+}
+
 .sem-safe { background: #d8f3dc; color: #2d6a4f; }
 .sem-warn { background: #fef3c7; color: #92400e; }
 .sem-risk { background: #fee2e2; color: #991b1b; }
@@ -481,7 +489,9 @@
     border: 2px solid var(--g3);
     border-top: none;
     z-index: 50;
-    max-height: 280px;
+    /* Alto suficiente para las 5 áreas y los 2 lugares sin recortar ninguno.
+       El tope en vh solo entra en pantallas bajas, donde no cabrían igual. */
+    max-height: min(70vh, 480px);
     overflow-y: auto;
     text-align: left;
 }
@@ -522,6 +532,38 @@
 .sugerencia-meta-explorar {
     font-size: 0.75rem;
     color: var(--muted);
+}
+
+/* Separador de origen dentro de la lista: áreas de SafePark y lugares */
+.sug-grupo {
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    background: #f9fafb;
+    padding: 7px 14px;
+    border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
+}
+
+.sug-texto { flex: 1; min-width: 0; }
+
+.sug-texto .sugerencia-nombre-explorar,
+.sug-texto .sugerencia-meta-explorar {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Puntaje del área, a la derecha de su sugerencia */
+.sug-score {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
 }
 
 /* Contexto que acompaña al puntaje: cómo se compara el área con las demás */

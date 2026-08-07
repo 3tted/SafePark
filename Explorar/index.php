@@ -6,7 +6,7 @@
     <title>Explorar - SafePark</title>
     <link rel="icon" href="../Assets/logo.png">
     <link rel="stylesheet" href="../CSS/styles.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -53,14 +53,9 @@ require_once '../includes/navbar.php';
                 <input type="text" id="busqueda" placeholder="Buscar por nombre, colonia o tipo de área..." oninput="filtrarAreas(); mostrarSugerenciasExplorar()" autocomplete="off" value="<?= htmlspecialchars($_GET['busqueda'] ?? '') ?>">
                 <button class="btn-search" onclick="filtrarAreas()">Buscar</button>
             </div>
+            <!-- Una sola lista: las áreas de SafePark y los lugares de Ciudad
+                 Juárez van agrupados dentro de ella, no en cajas separadas. -->
             <div class="sugerencias-box-explorar" id="sugerencias-box-explorar" style="display:none;"></div>
-            <div id="sugerencias-box-nominatim-explorar"
-            style="display:none; position:absolute; top:calc(100% - 2px); left:0; right:0;
-            background:white; border-radius:0 0 16px 16px;
-            border:2px solid var(--g3); border-top:none;
-            box-shadow:0 6px 20px rgba(0,0,0,0.18); z-index:60;
-            max-height:280px; overflow-y:auto; text-align:left;">
-</div>
         </div>
     </div>
 
@@ -100,8 +95,9 @@ require_once '../includes/navbar.php';
                 $sem_lbl = $score >= 70 ? '● Seguro' : ($score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
                 $foto_modal = $area['foto'] ? '../Assets/fotos/' . htmlspecialchars($area['foto']) : '';
 
-                // Contexto que acompaña al puntaje: cómo se compara esta área
-                // con las demás. El puntaje en sí no depende de las otras.
+                // Contexto que acompaña al puntaje: cuántos reportes tiene el área
+                // y cómo se compara con las demás. El puntaje en sí no depende
+                // de las otras, por eso el ranking va aparte.
                 $n_rep    = $area['reportes']     ?? 0;
                 $posicion = $area['posicion']     ?? null;
                 $en_ciudad= $area['total_ciudad'] ?? 0;
@@ -109,8 +105,9 @@ require_once '../includes/navbar.php';
                 $ordinal = ['', '1ª', '2ª', '3ª', '4ª', '5ª'];
                 $contexto = $n_rep === 0
                     ? 'Sin reportes todavía'
-                    : ($ordinal[$posicion] ?? $posicion . 'ª') . ' área con más reportes · '
-                      . $n_rep . ' de ' . $en_ciudad . ' en la ciudad';
+                    : $n_rep . ($n_rep === 1 ? ' reporte' : ' reportes')
+                      . ' · ' . ($ordinal[$posicion] ?? $posicion . 'ª')
+                      . ' con más de la ciudad, de ' . $en_ciudad;
             ?>
                 <div class="ecard"
                     data-tipo="<?= $tipo ?>"
@@ -130,9 +127,9 @@ require_once '../includes/navbar.php';
                         <div class="ecard-tags">
                             <span class="etag"><?= $emoji ?> <?= $label ?></span>
                         </div>
-                        <div class="ecard-contexto"><?= htmlspecialchars($contexto) ?></div>
+                        <div class="ecard-contexto">📋 <?= htmlspecialchars($contexto) ?></div>
                         <div class="ecard-foot">
-                            <div class="semaforo <?= $sem_cls ?>"><?= $sem_lbl ?></div>
+                            <div class="semaforo <?= $sem_cls ?>"><?= $sem_lbl ?> <span class="sem-score"><?= $score ?>/100</span></div>
                             <button class="btn-fav" data-id="<?= $area['id_area'] ?>" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
                         </div>
                     </div>
@@ -184,63 +181,6 @@ require_once '../includes/navbar.php';
         const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
         const API_URL    = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
-    <script src="explorar.js"></script>
-    <script>
-let nominatimTimerExplorar = null;
-
-document.getElementById('busqueda').addEventListener('input', function() {
-    clearTimeout(nominatimTimerExplorar);
-    const texto = this.value.trim();
-    const box = document.getElementById('sugerencias-box-nominatim-explorar');
-
-    if (texto.length < 3) { box.style.display = 'none'; return; }
-
-    nominatimTimerExplorar = setTimeout(() => {
-        const url = 'https://nominatim.openstreetmap.org/search'
-            + '?q=' + encodeURIComponent(texto + ' Ciudad Juarez')
-            + '&format=json&limit=5&countrycodes=mx'
-            + '&bounded=1&viewbox=-106.55,31.60,-106.35,31.78';
-
-        fetch(url, { headers: { 'Accept-Language': 'es' } })
-        .then(r => r.json())
-        .then(resultados => {
-            if (!resultados.length) { box.style.display = 'none'; return; }
-
-            box.innerHTML = resultados.map(r => `
-                <div onclick="seleccionarNominatimExplorar('${r.display_name.split(',')[0]}')"
-                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;
-                     cursor:pointer;border-bottom:1px solid #f3f4f6;font-family:Nunito,sans-serif;">
-                    <span style="font-size:1rem;flex-shrink:0;">📍</span>
-                    <div>
-                        <div style="font-size:0.85rem;font-weight:700;color:#1B4332;">
-                            ${r.display_name.split(',')[0]}
-                        </div>
-                        <div style="font-size:0.75rem;color:#6b7280;">
-                            ${r.display_name.split(',').slice(1,3).join(',')}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            box.style.display = 'block';
-            document.querySelector('.search-bar-full').classList.add('abierto');
-        })
-        .catch(() => { box.style.display = 'none'; });
-    }, 400);
-});
-
-function seleccionarNominatimExplorar(nombre) {
-    document.getElementById('busqueda').value = nombre;
-    document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
-    document.querySelector('.search-bar-full').classList.remove('abierto');
-    filtrarAreas();
-}
-
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-bar-full') && !e.target.closest('#sugerencias-box-nominatim-explorar')) {
-        document.getElementById('sugerencias-box-nominatim-explorar').style.display = 'none';
-        document.querySelector('.search-bar-full').classList.remove('abierto');
-    }
-});
-</script>
+    <script src="explorar.js?v=2"></script>
 </body>
 </html>
