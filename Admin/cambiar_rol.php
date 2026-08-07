@@ -8,9 +8,9 @@ $nuevo_rol  = $_POST['rol'] ?? '';
 $validos    = ['usuario', 'admin'];
 
 if (!$id_usuario || !in_array($nuevo_rol, $validos)) {
-    header('Location: index.php?error=servidor'); exit;
+    header('Location: ./?error=servidor'); exit;
 }
 
 $resultado = api_put('/usuarios/' . $id_usuario . '/rol', ['rol' => $nuevo_rol]);
-header($resultado['ok'] ? 'Location: index.php?exito=1#tab-usuarios' : 'Location: index.php?error=servidor#tab-usuarios');
+header($resultado['ok'] ? 'Location: ./?exito=1#tab-usuarios' : 'Location: ./?error=servidor#tab-usuarios');
 exit;

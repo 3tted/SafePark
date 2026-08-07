@@ -6,6 +6,6 @@
 require_once __DIR__ . '/includes/auth.php';
 
 // Con o sin cuenta se entra a Home: los invitados pueden mirar.
-$destino = 'Home/index.php';
+$destino = 'Home/';
 header('Location: ' . $destino);
 exit;

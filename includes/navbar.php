@@ -5,28 +5,28 @@ $es_admin    = isset($_SESSION['id_usuario']) && es_admin();
 $de_invitado = es_invitado();
 ?>
 <nav class="navbar">
-    <a class="nav-logo" href="<?= $nav_base ?>Home/index.php">
+    <a class="nav-logo" href="<?= $nav_base ?>Home/">
         <img src="<?= $nav_base ?>Assets/logo.png" height="50" alt="SafePark logo">
         <span class="nav-logo-text">Safe<span>Park</span></span>
     </a>
     <div class="nav-links">
-        <a class="nav-link <?= ($nav_active==='inicio') ? 'active':'' ?>" href="<?= $nav_base ?>Home/index.php">Inicio</a>
-        <a class="nav-link <?= ($nav_active==='mapa') ? 'active':'' ?>" href="<?= $nav_base ?>Mapa/index.php">Mapa</a>
-        <a class="nav-link <?= ($nav_active==='explorar') ? 'active':'' ?>" href="<?= $nav_base ?>Explorar/index.php">Explorar</a>
+        <a class="nav-link <?= ($nav_active==='inicio') ? 'active':'' ?>" href="<?= $nav_base ?>Home/">Inicio</a>
+        <a class="nav-link <?= ($nav_active==='mapa') ? 'active':'' ?>" href="<?= $nav_base ?>Mapa/">Mapa</a>
+        <a class="nav-link <?= ($nav_active==='explorar') ? 'active':'' ?>" href="<?= $nav_base ?>Explorar/">Explorar</a>
         <?php if (!$de_invitado): ?>
-            <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/index.php">Reportar</a>
+            <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/">Reportar</a>
         <?php endif; ?>
-        <a class="nav-link <?= ($nav_active==='comunidad') ? 'active':'' ?>" href="<?= $nav_base ?>Comunidad/index.php">Comunidad</a>
+        <a class="nav-link <?= ($nav_active==='comunidad') ? 'active':'' ?>" href="<?= $nav_base ?>Comunidad/">Comunidad</a>
     </div>
     <div class="nav-right">
         <?php if ($de_invitado): ?>
-            <a class="nav-link" href="<?= $nav_base ?>Login/index.php">Iniciar sesión</a>
-            <a class="btn-nav" href="<?= $nav_base ?>Registro/index.php">Crear cuenta</a>
+            <a class="nav-link" href="<?= $nav_base ?>Login/">Iniciar sesión</a>
+            <a class="btn-nav" href="<?= $nav_base ?>Registro/">Crear cuenta</a>
         <?php else: ?>
             <?php if ($es_admin): ?>
-                <a class="nav-link" href="<?= $nav_base ?>Admin/index.php" style="background:var(--g4);color:var(--g1);font-weight:800;">⚙️ Admin</a>
+                <a class="nav-link" href="<?= $nav_base ?>Admin/" style="background:var(--g4);color:var(--g1);font-weight:800;">⚙️ Admin</a>
             <?php endif; ?>
-            <a class="nav-link <?= ($nav_active==='perfil') ? 'active':'' ?>" href="<?= $nav_base ?>Perfil/index.php">Mi perfil</a>
+            <a class="nav-link <?= ($nav_active==='perfil') ? 'active':'' ?>" href="<?= $nav_base ?>Perfil/">Mi perfil</a>
             <a class="btn-nav" href="<?= $nav_base ?>Login/logout.php">Cerrar sesión</a>
         <?php endif; ?>
     </div>
@@ -35,7 +35,7 @@ $de_invitado = es_invitado();
 <?php if ($de_invitado): ?>
 <div class="aviso-invitado">
     👋 Estás viendo SafePark como invitado.
-    <a href="<?= $nav_base ?>Registro/index.php">Crea una cuenta</a>
+    <a href="<?= $nav_base ?>Registro/">Crea una cuenta</a>
     para reportar, comentar y reaccionar.
 </div>
 <?php endif; ?>

@@ -296,7 +296,7 @@ function abrirModalArea(el) {
 
     // Cómo se compara esta área con las demás de la ciudad
     document.getElementById('modal-contexto').textContent = el.dataset.contexto || '';
-    document.getElementById('modal-mapa-link').href = '../Mapa/index.php?area=' + id;
+    document.getElementById('modal-mapa-link').href = '../Mapa/?area=' + id;
 
     // Si el área tiene foto se usa de portada; si no, un emoji según su tipo
     const fotoEl = document.getElementById('modal-foto');

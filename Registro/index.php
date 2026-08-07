@@ -51,7 +51,7 @@
                 <button class="btn-primary" type="submit">Crear cuenta</button>
             </form>
             <div class="form-footer">
-                ¿Ya tienes cuenta? <a href="../Login/index.php">Inicia sesión</a>
+                ¿Ya tienes cuenta? <a href="../Login/">Inicia sesión</a>
             </div>
         </div>
     </div>

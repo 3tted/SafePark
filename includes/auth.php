@@ -20,7 +20,7 @@ function es_invitado(): bool {
 // Redirige al login si no hay sesión activa
 function requiere_sesion($redirect_base = '../') {
     if (!isset($_SESSION['id_usuario'])) {
-        header('Location: ' . $redirect_base . 'Login/index.php');
+        header('Location: ' . $redirect_base . 'Login/');
         exit;
     }
 }
@@ -59,7 +59,7 @@ function requiere_admin($redirect_base = '../') {
     $_SESSION['rol'] = $rol;   // mantiene sincronizado el cache de es_admin()
 
     if ($rol !== 'admin') {
-        header('Location: ' . $redirect_base . 'Home/index.php');
+        header('Location: ' . $redirect_base . 'Home/');
         exit;
     }
 }

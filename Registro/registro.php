@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmar = $_POST['confirmar'] ?? '';
 
     if ($password !== $confirmar) {
-        header('Location: index.php?error=passwords');
+        header('Location: ./?error=passwords');
         exit;
     }
 
@@ -24,12 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['id_usuario'] = $r['id_usuario'];
         $_SESSION['nombre']     = $nombre;
         $_SESSION['rol']        = 'usuario';
-        header('Location: ../Home/index.php');
+        header('Location: ../Home/');
         exit;
     }
 
     $destino = ($r['error'] ?? '') === 'email_duplicado' ? 'email' : 'servidor';
-    header('Location: index.php?error=' . $destino);
+    header('Location: ./?error=' . $destino);
     exit;
 }
 ?>

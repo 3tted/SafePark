@@ -10,14 +10,14 @@ require_once '../includes/api.php';
 
 $config = __DIR__ . '/../includes/config_google.php';
 if (!file_exists($config)) {
-    header('Location: index.php?error=google_config');
+    header('Location: ./?error=google_config');
     exit;
 }
 require_once $config;
 
 function fallo_google(string $motivo, string $detalle = ''): void {
     if ($detalle !== '') error_log("Login con Google fallo ($motivo): $detalle");
-    header('Location: index.php?error=' . $motivo);
+    header('Location: ./?error=' . $motivo);
     exit;
 }
 
@@ -91,5 +91,5 @@ $_SESSION['id_usuario'] = $r['usuario']['id_usuario'];
 $_SESSION['nombre']     = $r['usuario']['nombre'];
 $_SESSION['rol']        = $r['usuario']['rol'];
 
-header('Location: ../Home/index.php');
+header('Location: ../Home/');
 exit;

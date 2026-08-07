@@ -86,7 +86,7 @@ require_once '../includes/navbar.php';
         <div class="explorar-grid" id="explorar-grid">
 
             <?php if (count($areas) === 0): ?>
-                <p style="color:var(--muted);">Aún no hay áreas agregadas. Ve al <a href="../Mapa/index.php">Mapa</a> para agregar la primera.</p>
+                <p style="color:var(--muted);">Aún no hay áreas agregadas. Ve al <a href="../Mapa/">Mapa</a> para agregar la primera.</p>
             <?php else: foreach ($areas as $area):
                 $tipo = $area['tipo'] ?: 'parque';
                 $emoji = $emoji_tipo[$tipo] ?? '🌳';

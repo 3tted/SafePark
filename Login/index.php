@@ -57,7 +57,7 @@
             </a>
 
             <div class="form-footer">
-                ¿No tienes cuenta? <a href="../Registro/index.php">Regístrate aquí</a>
+                ¿No tienes cuenta? <a href="../Registro/">Regístrate aquí</a>
             </div>
         </div>
     </div>

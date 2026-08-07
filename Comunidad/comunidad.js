@@ -33,7 +33,7 @@ let pickerActivo = null;
 let pickerEl = null;
 
 function togglePicker(btn) {
-    if (!ID_USUARIO) { window.location.href = '../Login/index.php'; return; }
+    if (!ID_USUARIO) { window.location.href = '../Login/'; return; }
     if (pickerActivo === btn) { cerrarPicker(); return; }
     cerrarPicker();
     pickerActivo = btn;
@@ -91,7 +91,7 @@ document.addEventListener('click', e => {
 function reaccionar(triggerEl, emoji) {
     // Un invitado ve las reacciones pero no puede poner ninguna. En vez de no
     // hacer nada —que se siente como si estuviera roto— se le ofrece entrar.
-    if (!ID_USUARIO) { window.location.href = '../Login/index.php'; return; }
+    if (!ID_USUARIO) { window.location.href = '../Login/'; return; }
 
     const reactionsBar = triggerEl && triggerEl.closest ? triggerEl.closest('.feed-reactions') : null;
     if (!reactionsBar) return;   // el botón ya no está en la página

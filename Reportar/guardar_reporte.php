@@ -5,7 +5,7 @@ require_once '../includes/fotos.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php'); exit;
+    header('Location: ./'); exit;
 }
 
 $tipo        = trim($_POST['tipo'] ?? '');
@@ -14,12 +14,12 @@ $id_area     = intval($_POST['id_area'] ?? 0);
 $tipos_validos = ['incidente', 'condicion', 'sugerencia'];
 
 if (empty($tipo) || empty($descripcion) || !$id_area || !in_array($tipo, $tipos_validos)) {
-    header('Location: index.php?error=campos'); exit;
+    header('Location: ./?error=campos'); exit;
 }
 
 $foto_nombre = guardar_foto($_FILES['foto'] ?? null, 'r' . $_SESSION['id_usuario'], 5);
 if ($foto_nombre === false) {
-    header('Location: index.php?error=foto'); exit;
+    header('Location: ./?error=foto'); exit;
 }
 
 $resultado = api_post('/reportes', [
@@ -30,5 +30,5 @@ $resultado = api_post('/reportes', [
     'foto'        => $foto_nombre
 ]);
 
-header($resultado['ok'] ? 'Location: index.php?exito=1' : 'Location: index.php?error=servidor');
+header($resultado['ok'] ? 'Location: ./?exito=1' : 'Location: ./?error=servidor');
 exit;

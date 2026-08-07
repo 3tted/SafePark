@@ -117,7 +117,7 @@ require_once '../includes/navbar.php';
 
         function irABuscar() {
             const texto = document.getElementById('home-busqueda').value.trim();
-            window.location.href = '../Explorar/index.php?busqueda=' + encodeURIComponent(texto);
+            window.location.href = '../Explorar/?busqueda=' + encodeURIComponent(texto);
         }
 
         function mostrarSugerenciasHome() {
@@ -171,7 +171,7 @@ require_once '../includes/navbar.php';
             }
         });
 
-        homeMap.on('click', () => window.location.href = '../Mapa/index.php');
+        homeMap.on('click', () => window.location.href = '../Mapa/');
 
         let nominatimTimer = null;
 

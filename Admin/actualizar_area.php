@@ -15,12 +15,12 @@ $lng     = $_POST['lng'] ?? '';
 $tipos_validos = ['parque', 'deportivo', 'plaza'];
 
 if (!$id_area || empty($nombre) || empty($colonia) || !in_array($tipo, $tipos_validos) || $lat === '' || $lng === '') {
-    header('Location: index.php?error=servidor#tab-areas'); exit;
+    header('Location: ./?error=servidor#tab-areas'); exit;
 }
 
 $foto = guardar_foto($_FILES['foto'] ?? null, 'area', 3);
 if ($foto === false) {
-    header('Location: index.php?error=foto#tab-areas'); exit;
+    header('Location: ./?error=foto#tab-areas'); exit;
 }
 
 $resultado = api_put('/areas/' . $id_area, [
@@ -35,5 +35,5 @@ $resultado = api_put('/areas/' . $id_area, [
     'foto'       => $foto
 ]);
 
-header($resultado['ok'] ? 'Location: index.php?exito=1#tab-areas' : 'Location: index.php?error=servidor#tab-areas');
+header($resultado['ok'] ? 'Location: ./?exito=1#tab-areas' : 'Location: ./?error=servidor#tab-areas');
 exit;
