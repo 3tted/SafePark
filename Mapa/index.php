@@ -15,7 +15,9 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_sesion();
+// Sin requiere_sesion(): esta página se puede ver como invitado.
+// Un invitado mira el mapa; agregar y editar áreas exige cuenta.
+$de_invitado = es_invitado();
 
 $es_admin  = es_admin();
 $areas_raw = api_get('/areas');
@@ -76,11 +78,14 @@ require_once '../includes/navbar.php';
                 <div class="leyenda-item"><div class="dot risk"></div> Riesgo</div>
             </div>
             <button class="btn-ubicacion" onclick="centrarUsuario()">📍 Mi ubicación</button>
+            <?php if (!$de_invitado): ?>
             <div class="aviso-agregar" id="aviso-agregar">📍 Haz clic en el mapa para elegir la ubicación de tu nueva área</div>
             <button class="btn-agregar-area" onclick="activarAgregarArea()">+ Agregar área</button>
+            <?php endif; ?>
         </div>
     </div>
 
+    <?php if (!$de_invitado): ?>
     <!-- Modal: agregar área -->
     <div class="modal-overlay" id="modal-area" style="display:none;" onclick="if(event.target===this) cerrarModalArea()">
         <div class="modal-card">
@@ -140,6 +145,7 @@ require_once '../includes/navbar.php';
     $mostrar_btn_ubicacion = true;
     require '../includes/modal_editar_area.php';
     ?>
+    <?php endif; // fin de los formularios que solo ve quien tiene cuenta ?>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

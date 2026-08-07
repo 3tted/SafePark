@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-$es_admin = isset($_SESSION['id_usuario']) && es_admin();
+$es_admin    = isset($_SESSION['id_usuario']) && es_admin();
+$de_invitado = es_invitado();
 ?>
 <nav class="navbar">
     <a class="nav-logo" href="<?= $nav_base ?>Home/index.php">
@@ -12,17 +13,50 @@ $es_admin = isset($_SESSION['id_usuario']) && es_admin();
         <a class="nav-link <?= ($nav_active==='inicio') ? 'active':'' ?>" href="<?= $nav_base ?>Home/index.php">Inicio</a>
         <a class="nav-link <?= ($nav_active==='mapa') ? 'active':'' ?>" href="<?= $nav_base ?>Mapa/index.php">Mapa</a>
         <a class="nav-link <?= ($nav_active==='explorar') ? 'active':'' ?>" href="<?= $nav_base ?>Explorar/index.php">Explorar</a>
-        <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/index.php">Reportar</a>
+        <?php if (!$de_invitado): ?>
+            <a class="nav-link <?= ($nav_active==='reportar') ? 'active':'' ?>" href="<?= $nav_base ?>Reportar/index.php">Reportar</a>
+        <?php endif; ?>
         <a class="nav-link <?= ($nav_active==='comunidad') ? 'active':'' ?>" href="<?= $nav_base ?>Comunidad/index.php">Comunidad</a>
     </div>
     <div class="nav-right">
-        <?php if ($es_admin): ?>
-            <a class="nav-link" href="<?= $nav_base ?>Admin/index.php" style="background:var(--g4);color:var(--g1);font-weight:800;">⚙️ Admin</a>
+        <?php if ($de_invitado): ?>
+            <a class="nav-link" href="<?= $nav_base ?>Login/index.php">Iniciar sesión</a>
+            <a class="btn-nav" href="<?= $nav_base ?>Registro/index.php">Crear cuenta</a>
+        <?php else: ?>
+            <?php if ($es_admin): ?>
+                <a class="nav-link" href="<?= $nav_base ?>Admin/index.php" style="background:var(--g4);color:var(--g1);font-weight:800;">⚙️ Admin</a>
+            <?php endif; ?>
+            <a class="nav-link <?= ($nav_active==='perfil') ? 'active':'' ?>" href="<?= $nav_base ?>Perfil/index.php">Mi perfil</a>
+            <a class="btn-nav" href="<?= $nav_base ?>Login/logout.php">Cerrar sesión</a>
         <?php endif; ?>
-        <a class="nav-link <?= ($nav_active==='perfil') ? 'active':'' ?>" href="<?= $nav_base ?>Perfil/index.php">Mi perfil</a>
-        <a class="btn-nav" href="<?= $nav_base ?>Login/logout.php">Cerrar sesión</a>
     </div>
 </nav>
+
+<?php if ($de_invitado): ?>
+<div class="aviso-invitado">
+    👋 Estás viendo SafePark como invitado.
+    <a href="<?= $nav_base ?>Registro/index.php">Crea una cuenta</a>
+    para reportar, comentar y reaccionar.
+</div>
+<?php endif; ?>
+
+<style>
+/* Franja para quien no ha iniciado sesión: explica qué puede hacer y qué no,
+   en vez de dejarlo descubrir a golpes que los botones no están. */
+.aviso-invitado {
+    background: var(--g5, #d8f3dc);
+    color: var(--g1, #1b4332);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px 16px;
+}
+.aviso-invitado a {
+    color: var(--g2, #2d6a4f);
+    text-decoration: underline;
+}
+</style>
 
 <style>
 /* Los avisos flotan sobre el contenido, fuera del flujo: así aparecer o

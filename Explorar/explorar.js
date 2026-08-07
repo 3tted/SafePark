@@ -74,6 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Se piden los favoritos del usuario y se pintan de rojo sus corazones.
     // PHP no los sabe al generar la página, por eso se consultan aparte.
+    // Un invitado llega con ID_USUARIO en 0 y no tiene favoritos que pedir.
+    if (!ID_USUARIO) return;
+
     fetch(API_URL + '/favoritos/' + ID_USUARIO)
         .then(r => r.json())
         .then(ids => {

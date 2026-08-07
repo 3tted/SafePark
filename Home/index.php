@@ -14,7 +14,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_sesion();
+// Sin requiere_sesion(): esta página se puede ver como invitado.
 
 $datos = api_get_multi([
     'areas'    => '/areas',
