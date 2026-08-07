@@ -90,7 +90,7 @@ require_once '../includes/navbar.php';
                 </div>
 
                 <div class="editar-btns">
-                    <a class="btn-cancelar" href="index.php">Cancelar</a>
+                    <a class="btn-cancelar" href="./">Cancelar</a>
                     <button class="btn-guardar" type="submit">Guardar cambios</button>
                 </div>
 

@@ -13,7 +13,9 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../includes/api.php';
-requiere_sesion();
+// Sin requiere_sesion(): el feed se puede leer como invitado.
+// Reaccionar, comentar y crear eventos siguen exigiendo cuenta.
+$de_invitado = es_invitado();
 
 // Las cinco consultas se lanzan juntas para no sumar latencias: ~0.8s en
 // paralelo contra ~4s una tras otra
@@ -145,7 +147,7 @@ require_once '../includes/navbar.php';
             <div class="feed-panel" id="tab-actividad">
                 <div class="feed-panel-header">
                     <span>Últimas acciones de la comunidad</span>
-                    <button class="btn-crear-evento" onclick="document.getElementById('modal-evento').style.display='flex'">+ Crear evento</button>
+                    <?php if (!$de_invitado): ?><button class="btn-crear-evento" onclick="document.getElementById('modal-evento').style.display='flex'">+ Crear evento</button><?php endif; ?>
                 </div>
 
                 <!-- Actividad real de la DB -->
@@ -209,15 +211,17 @@ require_once '../includes/navbar.php';
                             <?php foreach ($reacciones_item as $em => $total): ?>
                                 <button class="reaction-btn" onclick="reaccionar(this,'<?= htmlspecialchars($em) ?>')" <?= $data_attr ?>><?= $em ?> <?= $total ?></button>
                             <?php endforeach; ?>
+                            <?php if (!$de_invitado): ?>
                             <button class="reaction-add" onclick="togglePicker(this)" <?= $data_attr ?>>+</button>
+                            <?php endif; ?>
                             <button class="reaction-btn comment-toggle-btn" onclick="toggleComentarios(this)" <?= $data_attr ?>><?= $texto_comentarios ?></button>
                         </div>
                         <div class="comentarios-section" style="display:none;" <?= $data_attr ?>>
                             <div class="comentarios-lista"></div>
-                            <div class="comentario-form">
+                            <?php if (!$de_invitado): ?><div class="comentario-form">
                                 <input type="text" class="comentario-input" placeholder="Escribe un comentario...">
                                 <button class="comentario-send" onclick="enviarComentario(this)">Enviar</button>
-                            </div>
+                            </div><?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -239,7 +243,7 @@ require_once '../includes/navbar.php';
             <div class="feed-panel" id="tab-eventos" style="display:none;">
                 <div class="feed-panel-header">
                     <span>Eventos programados en la ciudad</span>
-                    <button class="btn-crear-evento" onclick="document.getElementById('modal-evento').style.display='flex'">+ Crear evento</button>
+                    <?php if (!$de_invitado): ?><button class="btn-crear-evento" onclick="document.getElementById('modal-evento').style.display='flex'">+ Crear evento</button><?php endif; ?>
                 </div>
 
                 <?php if ($exito === 'evento'): ?>
@@ -279,15 +283,17 @@ require_once '../includes/navbar.php';
                                 <?php foreach ($reacciones_ev as $em => $total): ?>
                                     <button class="reaction-btn" onclick="reaccionar(this,'<?= htmlspecialchars($em) ?>')" <?= $data_ev ?>><?= $em ?> <?= $total ?></button>
                                 <?php endforeach; ?>
+                                <?php if (!$de_invitado): ?>
                                 <button class="reaction-add" onclick="togglePicker(this)" <?= $data_ev ?>>+</button>
+                                <?php endif; ?>
                                 <button class="reaction-btn comment-toggle-btn" onclick="toggleComentarios(this)" <?= $data_ev ?>><?= $texto_com_ev ?></button>
                             </div>
                             <div class="comentarios-section" style="display:none;" <?= $data_ev ?>>
                                 <div class="comentarios-lista"></div>
-                                <div class="comentario-form">
+                                <?php if (!$de_invitado): ?><div class="comentario-form">
                                     <input type="text" class="comentario-input" placeholder="Escribe un comentario...">
                                     <button class="comentario-send" onclick="enviarComentario(this)">Enviar</button>
-                                </div>
+                                </div><?php endif; ?>
                             </div>
                         </div>
                         <button class="btn-asistir" onclick="this.textContent='✅ Confirmado'; this.classList.add('confirmado')">Asistir</button>
@@ -399,6 +405,7 @@ require_once '../includes/navbar.php';
 
     <div class="footer-bar">SafePark · Comunidad · Ciudad Juárez</div>
 
+    <?php if (!$de_invitado): ?>
     <!-- Modal: Crear evento -->
     <div class="modal-overlay" id="modal-evento" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
         <div class="modal-card">
@@ -438,10 +445,11 @@ require_once '../includes/navbar.php';
             </form>
         </div>
     </div>
+    <?php endif; // fin del modal que solo ve quien tiene cuenta ?>
 
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
     <script>
-        const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
+        const ID_USUARIO = <?= (int)($_SESSION['id_usuario'] ?? 0) ?>;   // 0 = invitado
         const API_URL    = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
     <script src="comunidad.js?v=2"></script>

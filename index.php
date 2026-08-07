@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/includes/auth.php';
 
-$destino = isset($_SESSION['id_usuario']) ? 'Home/index.php' : 'Login/index.php';
+// Con o sin cuenta se entra a Home: los invitados pueden mirar.
+$destino = 'Home/';
 header('Location: ' . $destino);
 exit;

@@ -11,13 +11,12 @@
 <body>
 
 <?php
-session_start();
+require_once '../includes/auth.php';   // define es_invitado() e inicia la sesión
 require_once '../includes/api.php';
 
-if (!isset($_SESSION['id_usuario'])) {
-    header('Location: ../Login/index.php');
-    exit;
-}
+// Sin candado: esta página se puede ver como invitado.
+// Lo único que exige cuenta aquí son los favoritos.
+$de_invitado = es_invitado();
 
 $emoji_tipo = ['parque' => '🌳', 'deportivo' => '⚽', 'plaza' => '🏛️'];
 $label_tipo = ['parque' => 'Parque', 'deportivo' => 'Deportivo', 'plaza' => 'Plaza'];
@@ -87,7 +86,7 @@ require_once '../includes/navbar.php';
         <div class="explorar-grid" id="explorar-grid">
 
             <?php if (count($areas) === 0): ?>
-                <p style="color:var(--muted);">Aún no hay áreas agregadas. Ve al <a href="../Mapa/index.php">Mapa</a> para agregar la primera.</p>
+                <p style="color:var(--muted);">Aún no hay áreas agregadas. Ve al <a href="../Mapa/">Mapa</a> para agregar la primera.</p>
             <?php else: foreach ($areas as $area):
                 $tipo = $area['tipo'] ?: 'parque';
                 $emoji = $emoji_tipo[$tipo] ?? '🌳';
@@ -99,7 +98,6 @@ require_once '../includes/navbar.php';
                 $sem_lbl = $score >= 70 ? '● Seguro' : ($score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
                 $foto_modal = $area['foto'] ? '../Assets/fotos/' . htmlspecialchars($area['foto']) : '';
 
-                // Contexto que acompaña al puntaje: cuántos reportes tiene el área
                 // Cuántos reportes tiene el área, con el total de la ciudad al
                 // lado para dar la escala: ocho reportes dicen poco si no se
                 // sabe si en la ciudad hay veinte o dos mil.
@@ -131,7 +129,9 @@ require_once '../includes/navbar.php';
                         <div class="ecard-contexto">📋 <?= htmlspecialchars($contexto) ?></div>
                         <div class="ecard-foot">
                             <div class="semaforo <?= $sem_cls ?>"><?= $sem_lbl ?> <span class="sem-score"><?= $score ?>/100</span></div>
+                            <?php if (!$de_invitado): ?>
                             <button class="btn-fav" data-id="<?= $area['id_area'] ?>" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -179,7 +179,7 @@ require_once '../includes/navbar.php';
     </div>
 
     <script>
-        const ID_USUARIO = <?= $_SESSION['id_usuario'] ?>;
+        const ID_USUARIO = <?= (int)($_SESSION['id_usuario'] ?? 0) ?>;   // 0 = invitado
         const API_URL    = '<?= API_DATOS ?>';   // el JS solo usa el API de Datos
     </script>
     <script src="explorar.js?v=2"></script>

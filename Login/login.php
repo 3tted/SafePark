@@ -13,11 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['id_usuario'] = $r['usuario']['id_usuario'];
         $_SESSION['nombre']     = $r['usuario']['nombre'];
         $_SESSION['rol']        = $r['usuario']['rol'];
-        header('Location: ../Home/index.php');
+        header('Location: ../Home/');
         exit;
     }
 
-    header('Location: index.php?error=credenciales');
+    header('Location: ./?error=credenciales');
     exit;
 }
 ?>

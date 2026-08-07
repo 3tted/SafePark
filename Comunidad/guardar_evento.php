@@ -4,7 +4,7 @@ require_once '../includes/api.php';
 requiere_sesion();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: index.php'); exit;
+    header('Location: ./'); exit;
 }
 
 $nombre  = trim($_POST['nombre'] ?? '');
@@ -13,7 +13,7 @@ $fecha   = $_POST['fecha'] ?? '';
 $hora    = $_POST['hora'] ?? '';
 
 if (empty($nombre) || !$id_area || empty($fecha) || empty($hora)) {
-    header('Location: index.php?error=evento#tab-eventos'); exit;
+    header('Location: ./?error=evento#tab-eventos'); exit;
 }
 
 $resultado = api_post('/eventos', [
@@ -24,5 +24,5 @@ $resultado = api_post('/eventos', [
     'hora'       => $hora
 ]);
 
-header($resultado['ok'] ? 'Location: index.php?exito=evento#tab-eventos' : 'Location: index.php?error=evento#tab-eventos');
+header($resultado['ok'] ? 'Location: ./?exito=evento#tab-eventos' : 'Location: ./?error=evento#tab-eventos');
 exit;

@@ -151,7 +151,7 @@ require_once '../includes/navbar.php';
                     <div class="pempty-icon">📋</div>
                     <div class="pempty-text">Aún no has enviado reportes</div>
                     <div class="pempty-sub">Ayuda a la comunidad reportando áreas verdes</div>
-                    <a class="btn-ir" href="../Reportar/index.php">Crear reporte</a>
+                    <a class="btn-ir" href="../Reportar/">Crear reporte</a>
                 </div>
                 <?php else:
                     // Cómo se ve cada estado. El borde de color a la izquierda
@@ -228,7 +228,7 @@ require_once '../includes/navbar.php';
                     <div class="pempty-icon">📰</div>
                     <div class="pempty-text">Sin actividad reciente</div>
                     <div class="pempty-sub">Tus reportes, comentarios y reacciones aparecerán aquí</div>
-                    <a class="btn-ir" href="../Comunidad/index.php">Ver comunidad</a>
+                    <a class="btn-ir" href="../Comunidad/">Ver comunidad</a>
                 </div>
                 <?php else: ?>
                 <div class="actividad-lista">
@@ -299,7 +299,7 @@ require_once '../includes/navbar.php';
                     <div class="pempty-icon">❤️</div>
                     <div class="pempty-text">Aún no tienes favoritos</div>
                     <div class="pempty-sub">Explora áreas verdes y guárdalas aquí</div>
-                    <a class="btn-ir" href="../Explorar/index.php">Explorar áreas</a>
+                    <a class="btn-ir" href="../Explorar/">Explorar áreas</a>
                 </div>`;
                 return;
             }
@@ -312,7 +312,7 @@ require_once '../includes/navbar.php';
                     favs.map(a => {
                         const sem = a.score >= 70 ? '#d8f3dc' : (a.score >= 40 ? '#fef3c7' : '#fee2e2');
                         const semTxt = a.score >= 70 ? '● Seguro' : (a.score >= 40 ? '⚠ Precaución' : '✕ Riesgo');
-                        return `<div style="background:#f9fafb;border-radius:12px;padding:14px 16px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="window.location.href='../Explorar/index.php'">
+                        return `<div style="background:#f9fafb;border-radius:12px;padding:14px 16px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="window.location.href='../Explorar/'">
                             <div style="font-size:28px;">${iconos[a.tipo]||'🌿'}</div>
                             <div style="flex:1">
                                 <div style="font-weight:800;font-size:14px;color:#1a1a1a;">${a.nombre}</div>

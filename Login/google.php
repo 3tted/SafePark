@@ -7,7 +7,7 @@ require_once '../includes/auth.php';
 
 $config = __DIR__ . '/../includes/config_google.php';
 if (!file_exists($config)) {
-    header('Location: index.php?error=google_config');
+    header('Location: ./?error=google_config');
     exit;
 }
 require_once $config;

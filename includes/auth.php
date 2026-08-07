@@ -4,10 +4,23 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 require_once __DIR__ . '/api.php';
 
+// ¿Está viendo la página alguien sin cuenta?
+//
+// Inicio, Mapa, Explorar y Comunidad se pueden ver sin registrarse: una
+// plataforma ciudadana que exige una cuenta antes de dejarte ver si tu parque
+// es seguro pierde justo a la gente que más la necesita.
+//
+// Un invitado solo mira. Todo lo que escribe —reportar, comentar, reaccionar,
+// registrar un área, marcar favoritos— sigue exigiendo sesión, y no solo
+// escondiendo el botón: cada script de guardado llama a requiere_sesion().
+function es_invitado(): bool {
+    return !isset($_SESSION['id_usuario']);
+}
+
 // Redirige al login si no hay sesión activa
 function requiere_sesion($redirect_base = '../') {
     if (!isset($_SESSION['id_usuario'])) {
-        header('Location: ' . $redirect_base . 'Login/index.php');
+        header('Location: ' . $redirect_base . 'Login/');
         exit;
     }
 }
@@ -46,7 +59,7 @@ function requiere_admin($redirect_base = '../') {
     $_SESSION['rol'] = $rol;   // mantiene sincronizado el cache de es_admin()
 
     if ($rol !== 'admin') {
-        header('Location: ' . $redirect_base . 'Home/index.php');
+        header('Location: ' . $redirect_base . 'Home/');
         exit;
     }
 }

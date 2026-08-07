@@ -15,12 +15,12 @@ $lng     = $_POST['lng'] ?? '';
 $tipos_validos = ['parque', 'deportivo', 'plaza'];
 
 if (!$id_area || empty($nombre) || empty($colonia) || !in_array($tipo, $tipos_validos) || $lat === '' || $lng === '') {
-    header('Location: index.php?error=1'); exit;
+    header('Location: ./?error=1'); exit;
 }
 
 $foto = guardar_foto($_FILES['foto'] ?? null, 'area', 3);
 if ($foto === false) {
-    header('Location: index.php?error=foto'); exit;
+    header('Location: ./?error=foto'); exit;
 }
 
 $resultado = api_put('/areas/' . $id_area, [
@@ -35,5 +35,5 @@ $resultado = api_put('/areas/' . $id_area, [
     'foto'       => $foto
 ]);
 
-header($resultado['ok'] ? 'Location: index.php?exito=1' : 'Location: index.php?error=1');
+header($resultado['ok'] ? 'Location: ./?exito=1' : 'Location: ./?error=1');
 exit;
