@@ -36,7 +36,11 @@ $areas = array_map(fn($a) => [
     'horario'   => $a['horario'] ?? '',
     'tipo'      => $a['tipo'],
     'foto'      => $a['foto'],
-    'score'     => $a['score']
+    'score'     => $a['score'],
+    // Estos dos los calcula el API junto con el score. Si se olvidan aquí,
+    // la tarjeta cae en el valor por defecto y dice "sin reportes" siempre.
+    'reportes'     => $a['reportes']     ?? 0,
+    'total_ciudad' => $a['total_ciudad'] ?? 0,
 ], $areas_raw);
 
 $nav_base   = '../';
@@ -96,18 +100,15 @@ require_once '../includes/navbar.php';
                 $foto_modal = $area['foto'] ? '../Assets/fotos/' . htmlspecialchars($area['foto']) : '';
 
                 // Contexto que acompaña al puntaje: cuántos reportes tiene el área
-                // y cómo se compara con las demás. El puntaje en sí no depende
-                // de las otras, por eso el ranking va aparte.
+                // Cuántos reportes tiene el área, con el total de la ciudad al
+                // lado para dar la escala: ocho reportes dicen poco si no se
+                // sabe si en la ciudad hay veinte o dos mil.
                 $n_rep    = $area['reportes']     ?? 0;
-                $posicion = $area['posicion']     ?? null;
                 $en_ciudad= $area['total_ciudad'] ?? 0;
 
-                $ordinal = ['', '1ª', '2ª', '3ª', '4ª', '5ª'];
                 $contexto = $n_rep === 0
                     ? 'Sin reportes todavía'
-                    : $n_rep . ($n_rep === 1 ? ' reporte' : ' reportes')
-                      . ' · ' . ($ordinal[$posicion] ?? $posicion . 'ª')
-                      . ' con más de la ciudad, de ' . $en_ciudad;
+                    : $n_rep . ' de ' . $en_ciudad . ' reportes en la ciudad';
             ?>
                 <div class="ecard"
                     data-tipo="<?= $tipo ?>"

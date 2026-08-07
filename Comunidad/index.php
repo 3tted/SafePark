@@ -65,8 +65,15 @@ foreach ($reportes_api as $r) {
         'estado'=>$r['estado'] ?? 'pendiente'];
 }
 foreach ($eventos_api as $e) {
+    // Un evento tiene dos fechas y no hay que confundirlas: "fecha" es cuándo
+    // se hará, "fecha_creacion" cuándo se anunció. El feed es de acciones ya
+    // ocurridas, así que ordena por la segunda. Con la primera, un evento
+    // programado para dentro de dos semanas quedaría por encima de un reporte
+    // recién publicado y nunca lo dejaría subir.
     $actividad[] = ['tipo_actividad'=>'evento','id_item'=>null,'id_evento'=>$e['id_evento'],
-        'subtipo'=>null,'detalle'=>$e['nombre'],'fecha'=>$e['fecha'].' '.$e['hora'],
+        'subtipo'=>null,'detalle'=>$e['nombre'],
+        'fecha'    => $e['fecha_creacion'] ?? $e['fecha'],
+        'programado' => trim(($e['fecha'] ?? '') . ' ' . ($e['hora'] ?? '')),
         'usuario'=>$e['usuario'],'area'=>$e['area']];
 }
 usort($actividad, fn($a,$b) => strcmp($b['fecha'], $a['fecha']));
@@ -185,6 +192,12 @@ require_once '../includes/navbar.php';
                         <?php endif; ?>
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                             <div class="feed-time"><?= $fecha ?></div>
+                            <?php if ($r['tipo_actividad'] === 'evento' && !empty($r['programado'])):
+                                $cuando = strtotime($r['programado']);
+                            ?>
+                            <span style="font-size:0.7rem;font-weight:700;padding:2px 9px;border-radius:20px;
+                                         color:#5b21b6;background:#ede9fe;">📅 <?= $cuando ? date('d/m/Y H:i', $cuando) : htmlspecialchars($r['programado']) ?></span>
+                            <?php endif; ?>
                             <?php if ($r['tipo_actividad'] === 'reporte'):
                                 [$et_txt, $et_color, $et_fondo] = $ESTADOS_FEED[$r['estado']] ?? $ESTADOS_FEED['pendiente'];
                             ?>
