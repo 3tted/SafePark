@@ -77,8 +77,12 @@ CREATE TABLE IF NOT EXISTS EVENTO (
     id_area    INT          DEFAULT NULL,
     nombre     VARCHAR(150) NOT NULL,
     descripcion TEXT        DEFAULT NULL,
-    fecha      DATE         NOT NULL,
+    fecha      DATE         NOT NULL,   -- cuándo se hará
     hora       TIME         NOT NULL,
+    -- Cuándo se anunció. Es distinta de "fecha": un evento se organiza hoy
+    -- para dentro de dos semanas, y el feed de la comunidad ordena por cuándo
+    -- ocurrió la acción, no por cuándo ocurrirá el evento.
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_area)    REFERENCES AREA(id_area)       ON DELETE SET NULL
 );
