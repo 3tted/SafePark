@@ -14,6 +14,12 @@
 
 Plataforma web para **descubrir y evaluar áreas verdes seguras** en Ciudad Juárez, Chihuahua. Los usuarios pueden explorar parques, plazas y espacios verdes con un semáforo de seguridad en tiempo real basado en reportes de la comunidad.
 
+### 🟢 Proyecto terminado y en línea
+
+**[safepark.rf.gd](https://safepark.rf.gd)**
+
+Frontend en InfinityFree · APIs y base de datos en Railway
+
 </div>
 
 ---
@@ -77,6 +83,8 @@ de datos nunca quede expuesta a internet.
 | Mapas | Leaflet.js + OpenStreetMap |
 | Clima | OpenWeatherMap API |
 | Geocodificación / Autocompletado | Nominatim (OpenStreetMap) |
+| Rutas y navegación | OpenRouteService |
+| Inicio de sesión externo | Google OAuth 2.0 |
 | Backend / APIs REST | Node.js + Express (dos servicios: 3001 y 3002) |
 | Base de datos | MySQL (XAMPP) |
 | ORM / driver | mysql2 |
@@ -95,30 +103,48 @@ de datos nunca quede expuesta a internet.
 
 ### 🗺️ Mapa interactivo
 - Visualización de áreas verdes en Ciudad Juárez con Leaflet.js
+- Marcadores que muestran el puntaje del semáforo dentro del círculo
 - Filtros por tipo: Parques, Deportivos, Plazas
 - Semáforo de seguridad calculado con reportes de la comunidad
 - Agregar y editar áreas directamente desde el mapa
+
+### 🧭 Cómo llegar
+- Trazado de ruta desde tu ubicación hasta cualquier área (OpenRouteService)
+- Tres medios de transporte: 🚶 a pie, 🚗 en carro, 🚲 en bici
+- Distancia y tiempo estimado por medio
+- Punto azul que sigue tu posición mientras te mueves
+- Respaldo automático con Google Maps si falla la geolocalización o el servicio
 
 ### 🏠 Dashboard principal
 - Buscador con autocompletado via Nominatim
 - Estadísticas en tiempo real: áreas, reportes y usuarios
 - Clima actual (OpenWeatherMap)
 
+### 🔎 Explorar
+- Tarjetas con foto, nivel de seguridad, **puntaje** y **número de reportes**
+- Filtros cruzados: texto, tipo de área y nivel de seguridad
+- Buscador único que agrupa las áreas de SafePark y los lugares de la ciudad
+- Favoritos y detalle del área con sus reportes paginados
+
 ### 📋 Reportes comunitarios
 - Enviar reportes de incidentes, condiciones o sugerencias por área
+- Foto opcional en cada reporte
 - Los reportes alimentan el semáforo de seguridad
 - Panel lateral con historial de reportes propios
 
 ### 🌐 Comunidad
-- Feed de actividad: reportes y eventos de la comunidad
+- Feed de actividad ordenado por cuándo ocurrió cada acción
 - Reacciones con emojis estilo Discord (toggle, conteo en tiempo real)
-- Comentarios por reporte/evento
-- Crear eventos comunitarios
-- Top contribuidores
+- Comentarios por reporte/evento, con el conteo visible antes de abrirlos
+- Estado de cada reporte en el feed: ⏳ Pendiente / 🔧 En proceso / ✅ Resuelto
+- Crear eventos comunitarios, con la fecha programada visible
+- Tabla de colaboradores calculada con los puntos reales de cada persona
+- Paginación de 10 en 10, sin recargar la página
 
 ### 👤 Perfil de usuario
-- Ver puntos acumulados por reportes
-- Historial de reportes propios
+- Puntos acumulados y desglose de cómo se ganan
+- Historial de reportes propios con su estado actual
+- Áreas favoritas y actividad reciente
 
 ### ⚙️ Panel de administración
 - Estadísticas generales (usuarios, reportes, pendientes, áreas)
@@ -143,6 +169,7 @@ demás, la **API de Datos**.
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/auth/login` 🔒 | Verifica credenciales y devuelve el usuario |
+| POST | `/auth/google` 🔒 | Entra o registra con una cuenta de Google verificada |
 | GET | `/areas` | Todas las áreas con score de seguridad |
 | GET | `/areas/:id` | Área específica |
 | POST | `/areas` 🔒 | Crear área |
@@ -157,6 +184,7 @@ demás, la **API de Datos**.
 | GET | `/usuarios` | Lista de usuarios |
 | GET | `/usuarios/:id` | Perfil con puntos y datos personales |
 | GET | `/usuarios/:id/rol` | Rol de un usuario (control de permisos) |
+| GET | `/usuarios/:id/actividad` | Reportes, comentarios y reacciones de un usuario |
 | POST | `/usuarios` 🔒 | Registrar usuario nuevo |
 | PUT | `/usuarios/:id` 🔒 | Actualizar perfil (nombre, correo, contraseña, foto) |
 | PUT | `/usuarios/:id/rol` 🔒 | Cambiar rol de usuario |
@@ -166,9 +194,11 @@ demás, la **API de Datos**.
 | GET | `/reacciones/agrupadas` | Todas las reacciones contadas (feed) |
 | POST | `/reacciones` | Agregar o quitar reacción (toggle) |
 | GET | `/comentarios` | Comentarios por reporte/evento |
+| GET | `/comentarios/agrupadas` | Cuántos comentarios tiene cada publicación (feed) |
 | POST | `/comentarios` | Agregar comentario |
 | GET | `/favoritos/:id_usuario` | Áreas favoritas de un usuario |
 | POST | `/favoritos` | Guardar o quitar favorito (toggle) |
+| GET | `/rutas` | Trayecto entre dos puntos (proxy de OpenRouteService) |
 | GET | `/health` | Estado del servidor |
 
 ---
@@ -200,7 +230,8 @@ SafePark/
 │       ├── eventos.js              ← GET, POST
 │       ├── comentarios.js          ← GET, POST
 │       ├── reacciones.js           ← GET, POST (toggle)
-│       └── favoritos.js            ← GET, POST (toggle)
+│       ├── favoritos.js            ← GET, POST (toggle)
+│       └── rutas.js                ← Proxy de OpenRouteService (esconde la llave)
 ├── Admin/                          ← Panel de administración
 │   ├── index.php                   ← Vista principal del admin
 │   ├── actualizar_reporte.php      ← Cambia estado de reporte via API
@@ -227,6 +258,8 @@ SafePark/
 │   ├── index.php
 │   ├── login.php
 │   ├── logout.php
+│   ├── google.php                  ← Inicia el flujo OAuth de Google
+│   ├── google_callback.php         ← Recibe la respuesta y valida el state
 │   └── style.css
 ├── Mapa/                           ← Mapa interactivo (Leaflet.js)
 │   ├── index.php
@@ -250,7 +283,10 @@ SafePark/
 │   ├── reportar.js
 │   └── style.css
 ├── Assets/                         ← Logo, fotos de áreas
-├── CSS/styles.css                  ← Estilos globales (variables, navbar, reset)
+├── CSS/                            ← Estilos globales
+│   ├── styles.css                  ← Agregador (importa los otros dos)
+│   ├── base.css                    ← Variables de color, tipografía, reset
+│   └── navbar.css                  ← Barra de navegación
 ├── database/
 │   └── SafePark.sql                ← Esquema completo de la base de datos
 └── includes/
@@ -324,7 +360,7 @@ SetEnv SAFEPARK_API_SECRET   tu_secreto
 El score de cada área se calcula automáticamente en la API según sus reportes:
 
 ```
-score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
+score = 100 × 0.97^incidentes × 0.98^condiciones × 0.99^sugerencias
 ```
 
 | Nivel | Score | Color |
@@ -332,6 +368,38 @@ score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
 | 🟢 Seguro | ≥ 70 | `#40916C` |
 | 🟡 Precaución | 40 – 69 | `#F4A261` |
 | 🔴 Riesgo | < 40 | `#E63946` |
+
+Cada reporte descuenta un porcentaje distinto según su gravedad: un **incidente**
+3 %, una **condición** 2 % y una **sugerencia** 1 %. Se multiplica en lugar de
+restar para que el castigo sea proporcional —el primer incidente pesa más que el
+décimo— y para que el puntaje nunca caiga a números negativos. Hay un piso de 10:
+un cero absoluto daría a entender que no hay información, cuando es lo contrario.
+
+Con estos pesos hacen falta **12 incidentes para salir del verde y 31 para llegar
+al rojo**, calibrado así para que las pruebas en grupo no derrumben todas las
+zonas de golpe.
+
+El score **no se guarda en la base de datos**: se calcula al vuelo cada vez que se
+piden las áreas, así nunca queda desactualizado. El estado de un reporte
+(pendiente / en proceso / resuelto) no lo modifica, porque el semáforo mide
+cuánto ha ocurrido en un área, no qué tan bien la han atendido.
+
+---
+
+## ⭐ Puntos de la comunidad
+
+Los puntos premian a quien aporta; el semáforo califica al lugar. Un mismo reporte
+hace las dos cosas: baja el puntaje del área y sube los puntos de quien lo envió.
+
+| Aportación | Puntos |
+|---|---|
+| 🚨 Incidente de seguridad | 15 |
+| 🏚️ Condición del área | 10 |
+| 💡 Sugerencia | 5 |
+
+No valen igual porque no cuestan igual: un incidente exige salir a verificar algo
+delicado, una condición es constatar un desperfecto y una sugerencia es una idea.
+Al igual que el score, se calculan al vuelo y no se almacenan.
 
 ---
 
@@ -351,6 +419,9 @@ score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
 ---
 
 ## 📊 Estado del proyecto
+
+> **Proyecto terminado.** Todos los módulos planteados están construidos,
+> desplegados y funcionando en [safepark.rf.gd](https://safepark.rf.gd).
 
 | Módulo | Estado |
 |---|---|
@@ -373,6 +444,25 @@ score = 100 × 0.92^incidentes × 0.95^condiciones × 0.98^sugerencias
 | Filtros por nivel de seguridad | ✅ Completo |
 | Protección del API con secreto compartido | ✅ Completo |
 | Autenticación centralizada en el API | ✅ Completo |
+| Inicio de sesión con Google (OAuth 2.0) | ✅ Completo |
+| Rutas «Cómo llegar» con tres medios de transporte | ✅ Completo |
+| Estado de reportes visible para quien los envió | ✅ Completo |
+| Conteo de comentarios en el feed | ✅ Completo |
+| Tabla de colaboradores por puntos | ✅ Completo |
+| Paginación en Comunidad y Explorar | ✅ Completo |
+| Diseño adaptable a celular | ✅ Completo |
 | Despliegue del API y la base de datos | ✅ En Railway |
-| Despliegue del frontend PHP | ⏳ Pendiente |
-| Tokens JWT por usuario | ⏳ Pendiente (el secreto compartido cubre el caso actual) |
+| Despliegue del frontend PHP | ✅ En InfinityFree |
+
+### Ideas para más adelante
+
+Nada de esto hace falta para que la plataforma funcione; queda anotado por si el
+proyecto se retoma.
+
+| Idea | Por qué |
+|---|---|
+| Tokens JWT por usuario | Hoy el secreto compartido cubre el caso: el PHP es el único cliente que escribe |
+| Moderación de reportes falsos | Un reporte falso baja el puntaje igual que uno real; hoy solo un admin puede cerrarlo |
+| Que el puntaje se recupere con el tiempo | Los reportes resueltos siguen contando, así que un área solo puede bajar |
+| Almacenamiento externo para las fotos | Hoy viven en el disco del hosting PHP |
+| Llave foránea en `area.id_usuario` | Es la única de las 17 relaciones sin proteger |
